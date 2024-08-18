@@ -1,16 +1,17 @@
-import React, { useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import { Icon, divIcon, point } from "leaflet";
 import MarkerClusterGroup from "react-leaflet-cluster";
 import 'leaflet/dist/leaflet.css';
 import './MapComponent.css';
 
-function MapComponent({ setMapRef, businesses }) {
+function MapComponent({ setMapRef, businesses, onMarkerClick }) {
   const map = useMap(); // Access the map instance directly
+  const [activePopup, setActivePopup] = useState(null); // State to manage which popup is open
 
   useEffect(() => {
     if (map) {
-      console.log("Map instance available:", map); // Log the map instance
+      // console.log("Map instance available:", map); // Log the map instance
       setMapRef(map); // Set the map instance in the parent component's ref
       map.invalidateSize(); // Ensure the map resizes correctly
     }
@@ -25,18 +26,31 @@ function MapComponent({ setMapRef, businesses }) {
     <>
       {businesses.map((business, index) => (
         <Marker 
-          key={index} 
-          position={business.geocode} 
-          icon={customIcon}
-        >
-          <Popup>{business.name}</Popup>
-        </Marker>
+        key={index} 
+        position={business.geocode} 
+        icon={customIcon}
+        eventHandlers={{
+          mouseover: (e) => {
+            e.target.openPopup(); // Open popup on hover
+            setActivePopup(index); // Set the active popup index
+          },
+          mouseout: (e) => {
+            if (activePopup === index) {
+              e.target.closePopup(); // Close popup when mouse leaves
+              setActivePopup(null); // Reset active popup
+            }
+          },
+          click: () => onMarkerClick(index) // Trigger business selection on click
+        }}
+      >
+        <Popup>{business.name}</Popup>
+      </Marker>
       ))}
     </>
   );
 }
 
-export default function MapWrapper({ mapRef, businesses }) {
+export default function MapWrapper({ mapRef, businesses, onMarkerClick }) {
     const createCustomClusterIcon = (cluster) => {
     return new divIcon({
       html: `<div class="cluster-icon">${cluster.getChildCount()}</div>`,
@@ -58,7 +72,10 @@ export default function MapWrapper({ mapRef, businesses }) {
         chunkedLoading
         iconCreateFunction={createCustomClusterIcon}
       >
-        <MapComponent setMapRef={(map) => mapRef.current = map} businesses={businesses} />
+        <MapComponent setMapRef={(map) => mapRef.current = map} 
+        businesses={businesses}
+        onMarkerClick={onMarkerClick} // Pass the click handler to MapComponent
+        />
       </MarkerClusterGroup>
     </MapContainer>
   );

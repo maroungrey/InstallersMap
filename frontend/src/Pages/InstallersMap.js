@@ -29,25 +29,38 @@ function InstallersMap() {
   ]);
 
   const mapRef = useRef(null); // Reference to the map instance
+  const [selectedBusinessIndex, setSelectedBusinessIndex] = useState(null); // Track the selected business
 
   const handleBusinessClick = (geocode) => {
-    console.log("Current mapRef:", mapRef.current); // Log the current state of mapRef
+    // console.log("Current mapRef:", mapRef.current); // Log the current state of mapRef
     if (mapRef.current) {
-      console.log("Zooming to:", geocode); // Log the zoom action
+      // console.log("Zooming to:", geocode); // Log the zoom action
       mapRef.current.flyTo(geocode, 15, { animate: true }); // Zoom to the selected business location
     } else {
       console.error("Map reference is not available.");
     }
   };
 
+  const handleMarkerClick = (index) => {
+    setSelectedBusinessIndex(index); // Update the selected business index
+  };
+
   return (
     <Container fluid className="p-3" style={{ height: '50vh' }}>
       <Row className="h-100">
         <Col md={4} className="border-end">
-          <Sidebar businesses={businesses} onBusinessClick={handleBusinessClick} />
+        <Sidebar 
+            businesses={businesses} 
+            onBusinessClick={handleBusinessClick} 
+            selectedBusinessIndex={selectedBusinessIndex} // Pass selected index to Sidebar
+        />
         </Col>
         <Col md={8} className="h-100">
-          <MapWrapper mapRef={mapRef} businesses={businesses} />
+        <MapWrapper 
+            mapRef={mapRef} 
+            businesses={businesses} 
+            onMarkerClick={handleMarkerClick} // Pass marker click handler to MapWrapper
+          />
         </Col>
       </Row>
     </Container>

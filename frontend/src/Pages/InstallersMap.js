@@ -1,35 +1,31 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Container, Row, Col } from 'react-bootstrap';
 import MapWrapper from '../Components/Map/MapWrapper';
 import Sidebar from '../Components/Map/Sidebar';
 
 function InstallersMap() {
-  const [businesses, setBusinesses] = useState([
-    { 
-      name: 'E3 Vehicles', 
-      phone: '123-456-7890', 
-      email: 'e3vehicles@example.com', 
-      address: '123 Main St', 
-      geocode: [33.854920, -118.392130] 
-    },
-    { 
-      name: 'Canyon Lake Mobile golf cart repair', 
-      phone: '987-654-3210', 
-      email: 'canyonlake@example.com', 
-      address: '456 Elm St', 
-      geocode: [33.671450, -117.253280] 
-    },
-    { 
-      name: 'Apex Golf Carts', 
-      phone: '543-210-9876', 
-      email: 'apex@example.com', 
-      address: '789 Oak St', 
-      geocode: [33.624600, -117.726420] 
-    },
-  ]);
-
+  const [businesses, setBusinesses] = useState([]);
   const mapRef = useRef(null); // Reference to the map instance
   const [selectedBusinessIndex, setSelectedBusinessIndex] = useState(null); // Track the selected business
+
+  useEffect(() => {
+    // Fetch data from the API
+    fetch('http://localhost:8081/installers')
+      .then(response => response.json())
+      .then(data => {
+        // Transform the data to include geocode as an array
+        const transformedData = data.map(business => ({
+          ...business,
+          geocode: [business.latitude, business.longitude],
+        }));
+        setBusinesses(transformedData);
+      })
+      .catch(error => {
+        console.error('Error fetching businesses:', error);
+      });
+  }, []); // Empty dependency array means this effect runs once on mount
+
+
 
   const handleBusinessClick = (geocode) => {
     // console.log("Current mapRef:", mapRef.current); // Log the current state of mapRef

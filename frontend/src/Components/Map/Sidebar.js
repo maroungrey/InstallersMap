@@ -2,12 +2,15 @@ import React, { useRef, useEffect, useState } from 'react';
 import { InputGroup, Form, ListGroup, Button } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
 import { FaFlag } from 'react-icons/fa';
+import ReportIssueForm from './ReportIssueForm';
 import './MapComponent.css';
 
 function Sidebar({ businesses, onBusinessClick, selectedBusinessIndex }) {
 
   const businessRefs = useRef([]); // Array of refs to each business
   const navigate = useNavigate(); // Initialize useNavigate
+  const [showReportForm, setShowReportForm] = useState(false);
+  const [selectedBusiness, setSelectedBusiness] = useState(null);
 
   useEffect(() => {
     if (selectedBusinessIndex !== null && businessRefs.current[selectedBusinessIndex]) {
@@ -28,6 +31,16 @@ function Sidebar({ businesses, onBusinessClick, selectedBusinessIndex }) {
       top: rect.bottom + window.scrollY,
       left: rect.left + window.scrollX + rect.width / 2,
     });
+  };
+
+  const handleFlagClick = (business) => {
+    setSelectedBusiness(business);
+    setShowReportForm(true);
+  };
+
+  const handleCloseReportForm = () => {
+    setShowReportForm(false);
+    setSelectedBusiness(null);
   };
 
   return (
@@ -53,13 +66,19 @@ function Sidebar({ businesses, onBusinessClick, selectedBusinessIndex }) {
               >
               <div>
                 <h5>{business.name}</h5>
-                <p>Phone: {business.phone}</p>
-                <p>Email: {business.email}</p>
                 <p>Address: {business.address}</p>
+                <p>Phone: {business.phone}</p>
+                <p>Website: 
+                  <a href={business.website} target="_blank" rel="noopener noreferrer">
+                    {business.website.length > 30 ? `${business.website.slice(0, 30)}...` : business.website}
+                  </a>
+                </p>
               </div>
               <div 
                 className="flag-hover-container" 
                 onMouseEnter={handleMouseEnter}
+                onClick={() => handleFlagClick(business)} 
+                style={{ alignSelf: 'flex-end', marginTop: 'auto' }}
               >
                 <FaFlag className="flag-hover" />
                 <span 
@@ -81,6 +100,12 @@ function Sidebar({ businesses, onBusinessClick, selectedBusinessIndex }) {
       >
         Suggest Business
       </Button>
+
+      <ReportIssueForm 
+        show={showReportForm} 
+        handleClose={handleCloseReportForm} 
+        business={selectedBusiness} 
+      />
     </div>
   );
 }

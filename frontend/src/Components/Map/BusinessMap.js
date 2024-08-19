@@ -1,0 +1,51 @@
+import React, { useCallback } from 'react';
+import { MapContainer, TileLayer } from "react-leaflet";
+import MarkerClusterGroup from "react-leaflet-cluster";
+import { divIcon, point } from "leaflet";
+import 'leaflet/dist/leaflet.css';
+import '../../Styles/MapComponent.css';
+import BusinessMarkers from './BusinessMarkers';
+
+export default function BusinessMap({ mapRef, businesses, onMarkerClick }) {
+  const createCustomClusterIcon = useCallback((cluster) => {
+    return new divIcon({
+      html: `<div class="cluster-icon">${cluster.getChildCount()}</div>`,
+      className: "custom-marker-cluster",
+      iconSize: point(33, 33, true),
+    });
+  }, []);
+
+  return (
+<MapContainer 
+      center={[34.052235, -118.243683]} 
+      zoom={10} 
+      style={{ height: "100%", width: "100%" }}
+      role="region" // ARIA role for regions
+      aria-label="Map of businesses" // ARIA label for the map
+      whenCreated={(map) => {
+        if (mapRef.current !== map) {
+          mapRef.current = map; 
+        }
+      }}
+    >
+      <TileLayer
+        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        attribution="&copy; OpenStreetMap contributors"
+      />
+      <MarkerClusterGroup
+        chunkedLoading
+        iconCreateFunction={createCustomClusterIcon}
+      >
+        <BusinessMarkers 
+          setMapRef={(map) => {
+            if (mapRef.current !== map) {
+              mapRef.current = map;
+            }
+          }} 
+          businesses={businesses}
+          onMarkerClick={onMarkerClick}
+        />
+      </MarkerClusterGroup>
+    </MapContainer>
+  );
+}

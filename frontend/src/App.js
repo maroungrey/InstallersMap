@@ -1,7 +1,7 @@
 import React from 'react'
 import './App.css';
-import Navbar from './Components/Navbar/Navbar';
 import {BrowserRouter, Routes, Route} from 'react-router-dom'
+import Navbar from './Components/Common/Navbar';
 import Home from './Pages/Home'
 import InstallersMap from './Pages/InstallersMap'
 import Charts from './Pages/Charts'

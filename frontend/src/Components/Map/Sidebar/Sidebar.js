@@ -1,18 +1,20 @@
-import React, { useRef, useEffect, useState } from 'react';
-import { InputGroup, Form, ListGroup, Button } from 'react-bootstrap';
+import React, { useRef, useEffect, useState, useCallback } from 'react';
+import { ListGroup, Button } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
 import BusinessItem from './BusinessItem';
 import ReportIssueForm from './ReportIssueForm';
 import SearchBar from './SearchBar'
+import GeocodeConverter from '../GeocodeConverter';
 import { calculatePopupPosition } from '../../../Utilities/calculatePopupPosition';
 
-function Sidebar({ businesses, onBusinessClick, selectedBusinessIndex }) {
+function Sidebar({ businesses, onBusinessClick, selectedBusinessIndex, mapRef }) {
   const businessRefs = useRef([]); 
   const navigate = useNavigate(); 
   const [showReportForm, setShowReportForm] = useState(false);
   const [selectedBusiness, setSelectedBusiness] = useState(null);
   const [popupPosition, setPopupPosition] = useState({ top: 0, left: 0 });
   const [searchValue, setSearchValue] = useState('');
+  const [shouldGeocode, setShouldGeocode] = useState(false);
 
   useEffect(() => {
     if (selectedBusinessIndex !== null && businessRefs.current[selectedBusinessIndex]) {
@@ -40,23 +42,29 @@ function Sidebar({ businesses, onBusinessClick, selectedBusinessIndex }) {
 
   const handleSearchChange = (value) => {
     setSearchValue(value);
-    // Implement your custom search logic here
+    setShouldGeocode(false); // Reset geocoding flag when search value changes
   };
 
-  const handleSearch = () => {
-    // Handle the search action (e.g., filter businesses based on search value)
-    console.log('Searching for:', searchValue);
-  };
+  const handleGeocode = useCallback(({ latitude, longitude }) => {
+    console.log('Coordinates:', { latitude, longitude });
+    // Here you can add any additional logic you want to perform with the coordinates
+  }, []);
 
+  const handleSearch = useCallback(() => {
+    if (searchValue.trim()) {
+      setShouldGeocode(true); // Trigger geocoding when search is initiated
+    }
+  }, [searchValue]);
 
   return (
     <div>
       <SearchBar 
-        placeholder="Enter your zip code" 
+        placeholder="Enter your zip code or address" 
         value={searchValue} 
         onChange={handleSearchChange} 
         onSearch={handleSearch}
       />
+      {shouldGeocode && <GeocodeConverter key={searchValue} addressOrZip={searchValue} onGeocode={handleGeocode} />}
       <div style={{ maxHeight: '500px', overflowY: 'auto' }}>
         <ListGroup variant="flush">
           {businesses.map((business, index) => (

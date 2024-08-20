@@ -7,6 +7,7 @@ function InstallersMap() {
   const [businesses, setBusinesses] = useState([]);
   const mapRef = useRef(null);
   const [selectedBusinessIndex, setSelectedBusinessIndex] = useState(null);
+  const [mapError, setMapError] = useState(null);
 
   useEffect(() => {
     const fetchBusinesses = async () => {
@@ -43,6 +44,22 @@ function InstallersMap() {
     setSelectedBusinessIndex(index);
   }, []);
 
+  const handleCoordinatesUpdate = useCallback((latitude, longitude, country) => {
+    console.log('Updating coordinates:', { latitude, longitude, country });
+    
+    if (mapRef.current && latitude && longitude) {
+      mapRef.current.flyTo([latitude, longitude], 13, {
+        animate: true,
+        duration: 1.3,
+        easeLinearity: 0.5,
+      });
+      setMapError(null);
+    } else {
+      setMapError("Invalid coordinates received. Please try a different search.");
+      console.error('Invalid coordinates or map reference not available:', { latitude, longitude, mapRef: !!mapRef.current });
+    }
+  }, []);
+
   const memoizedBusinesses = useMemo(() => businesses, [businesses]);
 
   return (
@@ -53,6 +70,7 @@ function InstallersMap() {
             businesses={memoizedBusinesses} 
             onBusinessClick={handleBusinessClick} 
             selectedBusinessIndex={selectedBusinessIndex}
+            onCoordinatesUpdate={handleCoordinatesUpdate}
           />
         </Col>
         <Col md={8} className="h-100">

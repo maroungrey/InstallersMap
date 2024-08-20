@@ -1,43 +1,45 @@
-import { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 
-function GeocodeConverter({ addressOrZip, onGeocode }) {
-  const [error, setError] = useState(null);
-
+function GeocodeConverter({ addressOrZip, onGeocode, onError }) {
   useEffect(() => {
-    let isMounted = true;
-
-    const convertToCoordinates = async () => {
-      if (!addressOrZip) return;
-
+    const geocode = async () => {
       try {
-        const response = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(addressOrZip)}&format=json&limit=1`);
+        const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(addressOrZip)}&limit=1`, {
+          headers: {
+            'User-Agent': 'Lithium Installers Map (maroungrey@gmail.com)' // Replace with your app name and contact email
+          }
+        });
         const data = await response.json();
 
-        if (isMounted) {
-          if (data.length > 0) {
-            const { lat, lon } = data[0];
-            onGeocode({ latitude: parseFloat(lat), longitude: parseFloat(lon) });
-          } else {
-            setError('No results found for the provided address or zip code.');
-            onGeocode(null); // Pass null to indicate failure
-          }
+        if (data && data.length > 0) {
+          const result = data[0];
+          const latitude = parseFloat(result.lat);
+          const longitude = parseFloat(result.lon);
+          
+          onGeocode({
+            latitude: latitude,
+            longitude: longitude,
+            country: result.address ? result.address.country : null
+          });
+        } else {
+          onError('No results found');
         }
       } catch (error) {
-        if (isMounted) {
-          setError('An error occurred while fetching the geocode.');
-          onGeocode(null); // Pass null to indicate failure
-        }
+        console.error('Geocoding error:', error);
+        onError(error.message || 'An error occurred during geocoding');
       }
     };
 
-    convertToCoordinates();
+    const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
-    return () => {
-      isMounted = false;
+    const geocodeWithDelay = async () => {
+      await delay(1000); // 1 second delay to comply with usage policy
+      await geocode();
     };
-  }, [addressOrZip, onGeocode]);
 
-  return null; // No UI elements, purely functional
+    geocodeWithDelay();
+  }, [addressOrZip, onGeocode, onError]);
+  return null;
 }
 
 export default GeocodeConverter;

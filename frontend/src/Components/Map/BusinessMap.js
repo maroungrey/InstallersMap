@@ -1,12 +1,25 @@
-import React, { useCallback } from 'react';
-import { MapContainer, TileLayer } from "react-leaflet";
+import React, { useCallback, useEffect } from 'react';
+import { MapContainer, TileLayer, useMap } from "react-leaflet";
 import MarkerClusterGroup from "react-leaflet-cluster";
 import { divIcon, point } from "leaflet";
 import 'leaflet/dist/leaflet.css';
 import '../../Styles/MapComponent.css';
 import BusinessMarkers from './BusinessMarkers';
 
-export default function BusinessMap({ mapRef, businesses, onMarkerClick }) {
+function MapEvents({ onMapLoad }) {
+  const map = useMap();
+  
+  useEffect(() => {
+    if (onMapLoad) {
+      onMapLoad(map);
+    }
+  }, [map, onMapLoad]);
+
+  return null;
+}
+
+
+export default function BusinessMap({ mapRef, businesses, onMarkerClick, onMapLoad }) {
   const createCustomClusterIcon = useCallback((cluster) => {
     return new divIcon({
       html: `<div class="cluster-icon">${cluster.getChildCount()}</div>`,
@@ -16,18 +29,14 @@ export default function BusinessMap({ mapRef, businesses, onMarkerClick }) {
   }, []);
 
   return (
-<MapContainer 
+    <MapContainer 
       center={[34.052235, -118.243683]} 
       zoom={10} 
       style={{ height: "100%", width: "100%" }}
-      role="region" // ARIA role for regions
-      aria-label="Map of businesses" // ARIA label for the map
-      whenCreated={(map) => {
-        if (mapRef.current !== map) {
-          mapRef.current = map; 
-        }
-      }}
+      role="region"
+      aria-label="Map of businesses"
     >
+      <MapEvents onMapLoad={onMapLoad} />
       <TileLayer
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         attribution="&copy; OpenStreetMap contributors"

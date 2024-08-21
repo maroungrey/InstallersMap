@@ -8,6 +8,7 @@ function InstallersMap() {
   const mapRef = useRef(null);
   const [selectedBusinessIndex, setSelectedBusinessIndex] = useState(null);
   const [mapError, setMapError] = useState(null);
+  const [mapCenter, setMapCenter] = useState({ lat: 34.052235, lng: -118.243683 });
 
   useEffect(() => {
     const fetchBusinesses = async () => {
@@ -28,6 +29,17 @@ function InstallersMap() {
     };
 
     fetchBusinesses();
+  }, []);
+
+  const handleMapLoad = useCallback((map) => {
+    mapRef.current = map;
+    const updateCenter = () => {
+      const center = map.getCenter();
+      setMapCenter({ lat: center.lat, lng: center.lng });
+      console.log('Map center updated:', { lat: center.lat, lng: center.lng });
+    };
+    map.on('moveend', updateCenter);
+    updateCenter(); // Set initial center
   }, []);
 
   const handleBusinessClick = useCallback((geocode) => {
@@ -71,6 +83,7 @@ function InstallersMap() {
             onBusinessClick={handleBusinessClick} 
             selectedBusinessIndex={selectedBusinessIndex}
             onCoordinatesUpdate={handleCoordinatesUpdate}
+            mapCenter={mapCenter}
           />
         </Col>
         <Col md={8} className="h-100">
@@ -78,6 +91,7 @@ function InstallersMap() {
             mapRef={mapRef} 
             businesses={memoizedBusinesses} 
             onMarkerClick={handleMarkerClick}
+            onMapLoad={handleMapLoad}
           />
         </Col>
       </Row>

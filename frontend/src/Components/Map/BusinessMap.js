@@ -45,15 +45,9 @@ export default function BusinessMap({ mapRef, businesses, onMarkerClick, onMapLo
         chunkedLoading
         iconCreateFunction={createCustomClusterIcon}
       >
-        <BusinessMarkers 
-          setMapRef={(map) => {
-            if (mapRef.current !== map) {
-              mapRef.current = map;
-            }
-          }} 
-          businesses={businesses}
-          onMarkerClick={onMarkerClick}
-        />
+      <BusinessMarkers 
+        businesses={businesses}
+      />
       </MarkerClusterGroup>
     </MapContainer>
   );

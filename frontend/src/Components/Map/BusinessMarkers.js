@@ -1,19 +1,12 @@
-import React, { useState, useEffect, useCallback, memo } from 'react';
+import React, { useState, useCallback, memo } from 'react';
 import { Marker, Popup, useMap } from "react-leaflet";
 import { Icon } from "leaflet";
 import 'leaflet/dist/leaflet.css';
 import '../../Styles/MapComponent.css';
 
-const BusinessMarkers = memo(({ setMapRef, businesses, onMarkerClick }) => {
+const BusinessMarkers = memo(({ businesses }) => {
   const map = useMap();
   const [activePopup, setActivePopup] = useState(null);
-
-  useEffect(() => {
-    if (map) {
-      setMapRef(map); // Ensure setMapRef doesn't trigger a re-render that causes this effect to run again
-      map.invalidateSize(); // Only run this if necessary
-    }
-  }, [map, setMapRef]); // Dependencies should be stable and not cause re-renders
 
   const customIcon = new Icon({
     iconUrl: require("../Assets/pin.png"),
@@ -32,21 +25,24 @@ const BusinessMarkers = memo(({ setMapRef, businesses, onMarkerClick }) => {
     }
   }, [activePopup]);
 
-  const handleMarkerClick = useCallback((index) => {
-    onMarkerClick(index);
-  }, [onMarkerClick]);
+  const handleMarkerClick = useCallback((business) => {
+    map.flyTo(business.geocode, 15, {
+      animate: true,
+      duration: 1
+    });
+  }, [map]);
 
   return (
     <>
       {businesses.map((business, index) => (
         <Marker 
-          key={index} 
+          key={business.id || index} 
           position={business.geocode} 
           icon={customIcon}
           eventHandlers={{
             mouseover: (e) => handleMouseOver(e, index),
             mouseout: (e) => handleMouseOut(e, index),
-            click: () => handleMarkerClick(index),
+            click: () => handleMarkerClick(business),
           }}
         >
           <Popup>{business.name}</Popup>

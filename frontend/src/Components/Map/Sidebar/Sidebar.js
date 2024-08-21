@@ -28,7 +28,7 @@ function Sidebar({ businesses, onBusinessClick, selectedBusinessIndex, onCoordin
     handleCloseReportForm
   } = useSelectedBusiness();
 
-  // Calculate distances and sort businesses
+  // Calculate distances and sort businesses O(n log n) -> Good
   const sortedBusinesses = useMemo(() => {
     console.log('Recalculating sorted businesses');
     console.log('Map center:', mapCenter);

@@ -1,66 +1,21 @@
-import React, { useRef, useEffect, useState, useMemo } from 'react';
-import { ListGroup, Button, Alert } from 'react-bootstrap';
-import { useNavigate } from 'react-router-dom';
-import BusinessItem from './BusinessItem';
+import React, { useRef, useEffect, useState } from 'react';
 import ReportIssueForm from './ReportIssueForm';
-import SearchBar from './SearchBar';
+import BusinessList from './BusinessList';
+import SidebarControls from './SidebarControls';
 import { useGeocode } from '../../../Hooks/useGeocode';
 import { usePopupPosition } from '../../../Hooks/usePopupPosition';
 import { useSelectedBusiness } from '../../../Hooks/useSelectedBusiness';
+import { useSortedBusinesses } from '../../../Hooks/useSortedBusinesses';
 
 function Sidebar({ businesses, onBusinessClick, selectedBusinessIndex, onCoordinatesUpdate, mapCenter }) {
   const businessRefs = useRef([]);
-  const navigate = useNavigate();
   const [searchValue, setSearchValue] = useState('');
 
-  const {
-    shouldGeocode,
-    geocodeError,
-    startGeocoding,
-  } = useGeocode(searchValue, onCoordinatesUpdate);
+  const sortedBusinesses = useSortedBusinesses(businesses, mapCenter);
 
+  const { shouldGeocode, geocodeError, startGeocoding } = useGeocode(searchValue, onCoordinatesUpdate);
   const { popupPosition, handleMouseEnter } = usePopupPosition();
-
-  const {
-    selectedBusiness,
-    showReportForm,
-    handleFlagClick,
-    handleCloseReportForm
-  } = useSelectedBusiness();
-
-  // Calculate distances and sort businesses O(n log n) -> Good
-  const sortedBusinesses = useMemo(() => {
-    console.log('Recalculating sorted businesses');
-    console.log('Map center:', mapCenter);
-    console.log('Businesses:', businesses);
-    
-    if (!mapCenter) return businesses;
-
-    const calculateDistance = (lat1, lon1, lat2, lon2) => {
-      const R = 6371; // Radius of the Earth in km
-      const dLat = (lat2 - lat1) * Math.PI / 180;
-      const dLon = (lon2 - lon1) * Math.PI / 180;
-      const a = 
-        Math.sin(dLat/2) * Math.sin(dLat/2) +
-        Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
-        Math.sin(dLon/2) * Math.sin(dLon/2);
-      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-      return R * c; // Distance in km
-    };
-
-    const sorted = businesses.map(business => ({
-      ...business,
-      distance: calculateDistance(
-        mapCenter.lat, 
-        mapCenter.lng, 
-        business.geocode[0], // Assuming geocode is an array [lat, lng]
-        business.geocode[1]
-      )
-    })).sort((a, b) => a.distance - b.distance);
-
-    console.log('Sorted businesses:', sorted);
-    return sorted;
-  }, [businesses, mapCenter]);
+  const { selectedBusiness, showReportForm, handleFlagClick, handleCloseReportForm } = useSelectedBusiness();
 
   useEffect(() => {
     if (selectedBusinessIndex !== null && businessRefs.current[selectedBusinessIndex]) {
@@ -68,43 +23,25 @@ function Sidebar({ businesses, onBusinessClick, selectedBusinessIndex, onCoordin
     }
   }, [selectedBusinessIndex]);
 
-  const handleSearchChange = (value) => {
-    setSearchValue(value);
-  };
-
   return (
     <div>
-      <SearchBar 
-        placeholder="Enter zip code or full address" 
-        value={searchValue} 
-        onChange={handleSearchChange} 
-        onSearch={startGeocoding}
+      <SidebarControls 
+        searchValue={searchValue} 
+        handleSearchChange={setSearchValue} 
+        startGeocoding={startGeocoding} 
+        geocodeError={geocodeError} 
       />
-      {geocodeError && <Alert variant="warning">{geocodeError}</Alert>}
       <div style={{ maxHeight: '500px', overflowY: 'auto' }}>
-        <ListGroup variant="flush">
-          {sortedBusinesses.map((business, index) => (
-            <BusinessItem 
-              key={business.id || index} 
-              business={business} 
-              isSelected={selectedBusinessIndex === index} 
-              onClick={() => onBusinessClick(business.geocode)} 
-              onFlagClick={handleFlagClick}
-              onMouseEnter={handleMouseEnter}
-              popupPosition={popupPosition}
-              ref={(el) => (businessRefs.current[index] = el)} 
-            />
-          ))}
-        </ListGroup>
+        <BusinessList 
+          businesses={sortedBusinesses} 
+          selectedBusinessIndex={selectedBusinessIndex} 
+          onBusinessClick={onBusinessClick}
+          handleFlagClick={handleFlagClick}
+          handleMouseEnter={handleMouseEnter}
+          popupPosition={popupPosition}
+          businessRefs={businessRefs}
+        />
       </div>
-      <Button 
-        variant="primary" 
-        className="mt-3 w-100" 
-        onClick={() => navigate('/contact')} 
-      >
-        Suggest Business
-      </Button>
-
       <ReportIssueForm 
         show={showReportForm} 
         handleClose={handleCloseReportForm} 

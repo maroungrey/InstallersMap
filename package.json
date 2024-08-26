@@ -1,5 +1,9 @@
 {
   "dependencies": {
-    "@react-google-maps/api": "^2.19.3"
+    "@react-google-maps/api": "^2.19.3",
+    "chart.js": "^4.4.4",
+    "dotenv": "^16.4.5",
+    "lucide-react": "^0.436.0",
+    "react-chartjs-2": "^5.2.0"
   }
 }

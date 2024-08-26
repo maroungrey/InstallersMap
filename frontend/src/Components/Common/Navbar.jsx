@@ -22,7 +22,7 @@ export default function Navbar() {
   return (
     <MDBNavbar expand='lg' light bgColor='light'>
     <MDBContainer fluid>
-      <MDBNavbarBrand href='/'>Compare Lithium</MDBNavbarBrand>
+      <MDBNavbarBrand href='/'>Compare Batteries</MDBNavbarBrand>
 
       <MDBNavbarToggler
         aria-controls='navbarSupportedContent'
@@ -47,7 +47,7 @@ export default function Navbar() {
               <MDBNavbarLink href='/installers-map'>Map</MDBNavbarLink>
             </MDBNavbarItem>
             <MDBNavbarItem>
-              <MDBNavbarLink href='/charts'>Charts</MDBNavbarLink>
+              <MDBNavbarLink href='/battery-comparison'>Battery Comparison</MDBNavbarLink>
             </MDBNavbarItem>
 
             {/* <MDBNavbarItem>

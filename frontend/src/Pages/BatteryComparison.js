@@ -1,98 +1,92 @@
-import React, { useState, useMemo } from 'react';
+import React from 'react';
 import { Container, Row, Col, Button } from 'react-bootstrap';
 import { BatteryFilters } from '../Components/Batteries/BatteryFilters';
 import { BatteryGrid } from '../Components/Batteries/BatteryGrid';
 import { ComparisonSection } from '../Components/Batteries/ComparisonSection';
-import { useBatteries } from '../Hooks/useBatteries';
+import { useBatteryData } from '../Hooks/useBatteryData';
 import { useFilters } from '../Hooks/useFilters';
-import { useSearch } from '../Hooks/useSearch';
+import { useBatterySelection } from '../Hooks/useBatterySelection';
 
 const BatteryComparison = () => {
-  const { batteries, loading, error } = useBatteries();
-  const [searchTerm, setSearchTerm] = useState('');
-  const { filters, setFilters, sortBy, setSortBy, applyFilters } = useFilters();
-  const [selectedBatteries, setSelectedBatteries] = useState([]);
-  const [displayCount, setDisplayCount] = useState(6);
-  
-  const searchedBatteries = useSearch(batteries, searchTerm);
-  
-  const filteredAndSortedBatteries = useMemo(() => {
-    return applyFilters(searchedBatteries, filters, sortBy);
-  }, [searchedBatteries, filters, sortBy, applyFilters]);
+  const {
+    filters,
+    sortBy,
+    searchTerm,
+    page,
+    setPage,
+    handleFilterChange,
+    handleSortChange,
+    handleSearchChange,
+  } = useFilters();
 
-  const handleLoadMore = () => {
-    setDisplayCount(prevCount => prevCount + 12);
-  };
+  const {
+    batteries,
+    allBrands,
+    loading,
+    error,
+    hasMore,
+  } = useBatteryData(filters, sortBy, searchTerm, page);
 
-  const handleSelectBattery = (battery) => {
-    setSelectedBatteries(prev => 
-      prev.find(b => b.id === battery.id)
-        ? prev.filter(b => b.id !== battery.id)
-        : [...prev, battery]
-    );
-  };
-
-  const handleRemoveBattery = (batteryId) => {
-    setSelectedBatteries(prev => prev.filter(b => b.id !== batteryId));
-  };
+  const {
+    selectedBatteries,
+    handleSelectBattery,
+    handleRemoveBattery,
+    clearSelection,
+  } = useBatterySelection();
 
   const handleSuggestBattery = () => {
     // Implement your battery suggestion logic here
-    console.log("Suggesting a battery based on current filters and preferences");
+    console.log('Suggesting a battery based on current filters and preferences');
   };
 
   return (
     <Container fluid className="my-4">
       {selectedBatteries.length > 0 && (
-        <ComparisonSection 
+        <ComparisonSection
           selectedBatteries={selectedBatteries}
-          onClearSelection={() => setSelectedBatteries([])}
+          onClearSelection={clearSelection}
           onRemoveBattery={handleRemoveBattery}
         />
       )}
-      <br></br><br></br>
+      <br /><br />
       <h1 className="text-center mb-4">Battery Comparison</h1>
       <Row>
         <Col md={3}>
-          {/* Brand filter section */}
           <BatteryFilters
             filters={filters}
-            setFilters={setFilters}
-            batteries={batteries}
+            setFilters={handleFilterChange}
+            allBrands={allBrands}
             showOnlyBrands={true}
             onSuggestBattery={handleSuggestBattery}
           />
         </Col>
         <Col md={9}>
           <Row>
-            {/* Battery filters section */}
             <Col xs={12}>
               <BatteryFilters
                 filters={filters}
-                setFilters={setFilters}
+                setFilters={handleFilterChange}
                 sortBy={sortBy}
-                setSortBy={setSortBy}
+                setSortBy={handleSortChange}
                 searchTerm={searchTerm}
-                setSearchTerm={setSearchTerm}
-                batteries={batteries}
+                setSearchTerm={handleSearchChange}
+                allBrands={allBrands}
                 showOnlyBrands={false}
               />
             </Col>
           </Row>
           <Row>
-            {/* Battery grid section */}
             <Col xs={12}>
-              <BatteryGrid 
-                batteries={filteredAndSortedBatteries.slice(0, displayCount)} 
-                loading={loading} 
+              <BatteryGrid
+                batteries={batteries}
+                loading={loading}
                 error={error}
                 onSelectBattery={handleSelectBattery}
                 selectedBatteries={selectedBatteries}
-                onLoadMore={handleLoadMore}
               />
-              {displayCount < filteredAndSortedBatteries.length && (
+              {hasMore && !loading && (
                 <div className="text-center mt-3">
-                  <Button onClick={handleLoadMore}>Load More</Button>
+                  <Button onClick={() => setPage((prev) => prev + 1)}>Load More</Button>
                 </div>
               )}
             </Col>

@@ -15,16 +15,22 @@ app.get('/', (req, res) => {
 app.use('/installers', installersRoutes);
 app.use('/batteries', batteriesRoutes);
 
-app.listen(8081, () => {
-    console.log("Server is listening on port 8081");
+const PORT = process.env.PORT || 8081;
+app.listen(PORT, () => {
+    console.log(`Server is listening on port ${PORT}`);
 });
 
 process.on('SIGINT', () => {
-    db.end((err) => {
-        if (err) {
-            console.log('Error during disconnection:', err);
-        }
-        console.log('Database connection closed.');
+    // Assuming you have a db connection to close
+    if (db) {
+        db.end((err) => {
+            if (err) {
+                console.log('Error during disconnection:', err);
+            }
+            console.log('Database connection closed.');
+            process.exit();
+        });
+    } else {
         process.exit();
-    });
+    }
 });

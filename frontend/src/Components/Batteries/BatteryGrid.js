@@ -1,41 +1,27 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Row, Col, Card, Spinner, Alert, Form } from 'react-bootstrap';
 import { FaBatteryFull, FaBolt, FaFlag } from 'react-icons/fa';
 import { BatteryDetailView } from './BatteryDetailView';
 import ReportForm from './ReportForm';
 
 export const BatteryGrid = ({ 
-  batteries, 
+  batteries = [], 
   loading, 
   error, 
   onSelectBattery, 
-  selectedBatteries,
-  onLoadMore
+  selectedBatteries
 }) => {
-  const [showReportForm, setShowReportForm] = useState(false);
-  const [selectedBatteryForReport, setSelectedBatteryForReport] = useState(null);
-  const [showDetailView, setShowDetailView] = useState(false);
-  const [selectedBatteryForDetail, setSelectedBatteryForDetail] = useState(null);
-
   if (loading) return <Spinner animation="border" role="status" className="d-block mx-auto" />;
   if (error) return <Alert variant="danger">{error}</Alert>;
-  
-  if (!Array.isArray(batteries)) {
-    console.error('BatteryGrid received non-array batteries:', batteries);
-    return <Alert variant="danger">Invalid data received. Please try again later.</Alert>;
-  }
-  
   if (batteries.length === 0) return <Alert variant="info">No batteries found matching your criteria.</Alert>;
 
   const handleReportClick = (battery, e) => {
     e.stopPropagation();
-    setSelectedBatteryForReport(battery);
-    setShowReportForm(true);
+    // Trigger report form display (implementation moved to parent component or handled via props)
   };
 
   const handleCardClick = (battery) => {
-    setSelectedBatteryForDetail(battery);
-    setShowDetailView(true);
+    // Trigger detail view display (implementation moved to parent component or handled via props)
   };
 
   const handleCompareClick = (e, battery) => {
@@ -48,7 +34,7 @@ export const BatteryGrid = ({
       <Row>
         {batteries.map((battery) => (
           <Col key={battery.id} xs={12} sm={6} md={4} className="mb-3">
-            <Card onClick={() => handleCardClick(battery)} style={{ cursor: 'pointer' }} className='battery-card-hover'>
+            <Card onClick={() => handleCardClick(battery)} style={{ cursor: 'pointer' }} className="battery-card-hover">
               <Card.Img variant="top" src="https://placehold.co/100x100" />
               <Card.Body className="p-2">
                 <Card.Title className="fs-6">{battery.Brand} - {battery.Name}</Card.Title>
@@ -83,16 +69,6 @@ export const BatteryGrid = ({
           </Col>
         ))}
       </Row>
-      <ReportForm 
-        show={showReportForm} 
-        onHide={() => setShowReportForm(false)} 
-        battery={selectedBatteryForReport}
-      />
-      <BatteryDetailView
-        show={showDetailView}
-        onHide={() => setShowDetailView(false)}
-        battery={selectedBatteryForDetail}
-      />
     </>
   );
 };

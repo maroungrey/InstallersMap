@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState } from 'react';
 
 export const useFilters = () => {
   const [filters, setFilters] = useState({
@@ -7,30 +7,32 @@ export const useFilters = () => {
     chemistry: '',
   });
   const [sortBy, setSortBy] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [page, setPage] = useState(1);
 
-  const applyFilters = useCallback((batteries, filters, sortBy) => {
-    return batteries
-      .filter(battery => {
-        return (
-          (filters.brands.length === 0 || filters.brands.includes(battery.Brand)) &&
-          (filters.voltage === '' || battery['Nominal V'].toString() === filters.voltage) &&
-          (filters.chemistry === '' || battery.Chemistry === filters.chemistry)
-        );
-      })
-      .sort((a, b) => {
-        if (sortBy === 'capacity') return b['Ah Capacity'] - a['Ah Capacity'];
-        if (sortBy === 'warranty') return b['Full Warranty Years'] - a['Full Warranty Years'];
-        if (sortBy === 'weight') return a['Weight(lbs)'] - b['Weight(lbs)'];
-        if (sortBy === 'kWh') return b['Total kWh'] - a['Total kWh'];
-        return 0;
-      });
-  }, []);
+  const handleFilterChange = (newFilters) => {
+    setFilters(newFilters);
+    setPage(1); // Reset to first page when filters change
+  };
+
+  const handleSortChange = (newSortBy) => {
+    setSortBy(newSortBy);
+    setPage(1); // Reset to first page when sort changes
+  };
+
+  const handleSearchChange = (newSearchTerm) => {
+    setSearchTerm(newSearchTerm);
+    setPage(1); // Reset to first page when search term changes
+  };
 
   return {
     filters,
-    setFilters,
     sortBy,
-    setSortBy,
-    applyFilters
+    searchTerm,
+    page,
+    setPage,
+    handleFilterChange,
+    handleSortChange,
+    handleSearchChange,
   };
 };

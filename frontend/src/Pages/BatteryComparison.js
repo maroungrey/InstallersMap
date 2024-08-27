@@ -32,12 +32,22 @@ const BatteryComparison = () => {
     );
   };
 
+  const handleRemoveBattery = (batteryId) => {
+    setSelectedBatteries(prev => prev.filter(b => b.id !== batteryId));
+  };
+
+  const handleSuggestBattery = () => {
+    // Implement your battery suggestion logic here
+    console.log("Suggesting a battery based on current filters and preferences");
+  };
+
   return (
     <Container fluid className="my-4">
       {selectedBatteries.length > 0 && (
         <ComparisonSection 
           selectedBatteries={selectedBatteries}
           onClearSelection={() => setSelectedBatteries([])}
+          onRemoveBattery={handleRemoveBattery}
         />
       )}
       <br></br><br></br>
@@ -50,6 +60,7 @@ const BatteryComparison = () => {
             setFilters={setFilters}
             batteries={batteries}
             showOnlyBrands={true}
+            onSuggestBattery={handleSuggestBattery}
           />
         </Col>
         <Col md={9}>

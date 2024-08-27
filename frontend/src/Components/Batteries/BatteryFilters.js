@@ -1,6 +1,6 @@
 import React from 'react';
-import { Card, Row, Col, Form } from 'react-bootstrap';
-import { Filter, ArrowUpDown, Search } from 'lucide-react';
+import { Card, Row, Col, Form, Button } from 'react-bootstrap';
+import { Filter, ArrowUpDown, Search, Lightbulb } from 'lucide-react';
 
 export const BatteryFilters = ({ 
   filters, 
@@ -10,7 +10,8 @@ export const BatteryFilters = ({
   searchTerm, 
   setSearchTerm, 
   batteries,
-  showOnlyBrands = false
+  showOnlyBrands = false,
+  onSuggestBattery // New prop for handling the suggest battery action
 }) => {
   const uniqueBrands = [...new Set(batteries.map(battery => battery.Brand))];
 
@@ -55,21 +56,31 @@ export const BatteryFilters = ({
             </Form.Group>
           </Col>
           <Col xs={12} md={6}>
-            <Form.Group className="d-flex align-items-center">
-              <ArrowUpDown size={20} className="me-2" />
-              <Form.Label className="me-2 mb-0">Sort by:</Form.Label>
-              <Form.Select 
-                className="w-auto"
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value)}
-              >
-                <option value="">Select...</option>
-                <option value="capacity">Highest Capacity</option>
-                <option value="warranty">Longest Warranty</option>
-                <option value="weight">Lowest Weight</option>
-                <option value="kWh">Highest kWh</option>
-              </Form.Select>
-            </Form.Group>
+            <Row className="align-items-center">
+              <Col>
+                <Form.Group className="d-flex align-items-center">
+                  <ArrowUpDown size={20} className="me-2" />
+                  <Form.Label className="me-2 mb-0">Sort by:</Form.Label>
+                  <Form.Select 
+                    className="w-auto"
+                    value={sortBy}
+                    onChange={(e) => setSortBy(e.target.value)}
+                  >
+                    <option value="">Select...</option>
+                    <option value="capacity">Highest Capacity</option>
+                    <option value="warranty">Longest Warranty</option>
+                    <option value="weight">Lowest Weight</option>
+                    <option value="kWh">Highest kWh</option>
+                  </Form.Select>
+                </Form.Group>
+              </Col>
+              <Col xs="auto">
+                <Button variant="outline-primary" onClick={onSuggestBattery}>
+                  <Lightbulb size={20} className="me-2" />
+                  Suggest Battery
+                </Button>
+              </Col>
+            </Row>
           </Col>
         </Row>
         <Row className="align-items-center">

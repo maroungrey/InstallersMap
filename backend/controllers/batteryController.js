@@ -39,6 +39,9 @@ exports.getBatteries = async (req, res) => {
             queryParams.push(`%${searchTerm}%`, `%${searchTerm}%`);
         }
 
+        // Create a base query for counting total results
+        const countQueryStr = `SELECT COUNT(*) as total FROM (${queryStr}) as filtered_batteries`;
+
         if (sortBy) {
             switch (sortBy) {
                 case 'capacity':
@@ -61,16 +64,16 @@ exports.getBatteries = async (req, res) => {
         // Add pagination
         const offset = (page - 1) * limit;
         queryStr += ' LIMIT ? OFFSET ?';
-        queryParams.push(parseInt(limit), offset);
+        const paginationParams = [parseInt(limit), offset];
 
         console.log('Executing query:', queryStr);
-        console.log('Query parameters:', queryParams);
+        console.log('Query parameters:', [...queryParams, ...paginationParams]);
 
-        const batteries = await query(queryStr, queryParams);
+        const batteries = await query(queryStr, [...queryParams, ...paginationParams]);
         console.log('Fetched batteries:', batteries);
 
-        // Get total count for pagination
-        const totalCountResult = await query('SELECT COUNT(*) as total FROM `48v`');
+        // Get total count for filtered results
+        const totalCountResult = await query(countQueryStr, queryParams);
         const totalCount = totalCountResult[0].total;
         console.log('Total count:', totalCount);
 

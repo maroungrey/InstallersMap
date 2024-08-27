@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useEffect, useCallback } from 'react';
 import { Container, Row, Col, Button } from 'react-bootstrap';
 import { BatteryFilters } from '../Components/Batteries/BatteryFilters';
 import { BatteryGrid } from '../Components/Batteries/BatteryGrid';
@@ -12,8 +12,6 @@ const BatteryComparison = () => {
     filters,
     sortBy,
     searchTerm,
-    page,
-    setPage,
     handleFilterChange,
     handleSortChange,
     handleSearchChange,
@@ -25,7 +23,9 @@ const BatteryComparison = () => {
     loading,
     error,
     hasMore,
-  } = useBatteryData(filters, sortBy, searchTerm, page);
+    loadMore,
+    totalCount
+  } = useBatteryData(filters, sortBy, searchTerm);
 
   const {
     selectedBatteries,
@@ -38,13 +38,21 @@ const BatteryComparison = () => {
     // Implement your battery suggestion logic here
     console.log('Suggesting a battery based on current filters and preferences');
   };
-
   const handleBrandFilterChange = useCallback((newFilters) => {
     handleFilterChange(prevFilters => ({
       ...prevFilters,
       ...newFilters
     }));
   }, [handleFilterChange]);
+
+  useEffect(() => {
+    console.log('Component state:', {
+      batteriesCount: batteries.length,
+      hasMore,
+      totalCount,
+      filters
+    });
+  }, [batteries, hasMore, totalCount, filters]);
 
   return (
     <Container fluid className="my-4">
@@ -93,12 +101,22 @@ const BatteryComparison = () => {
                 error={error}
                 onSelectBattery={handleSelectBattery}
                 selectedBatteries={selectedBatteries}
+                // onReportIssue={handleReportIssue}
+                // onViewDetails={handleViewDetails}
               />
-              {hasMore && !loading && (
-                <div className="text-center mt-3">
-                  <Button onClick={() => setPage((prev) => prev + 1)}>Load More</Button>
-                </div>
-              )}
+               {hasMore ? (
+                  <div className="text-center mt-3">
+                    <Button onClick={loadMore} disabled={loading}>
+                      {loading ? 'Loading...' : 'Load More'}
+                    </Button>
+                  </div>
+                ) : (
+                  batteries.length > 0 && (
+                    <div className="text-center mt-3">
+                      <p>All batteries loaded. Total: {totalCount}</p>
+                    </div>
+                  )
+                )}
             </Col>
           </Row>
         </Col>

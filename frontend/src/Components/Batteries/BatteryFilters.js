@@ -98,10 +98,5 @@ export const BatteryFilters = ({
     </Card>
   );
 
-  return (
-    <>
-      {renderBrandFilters()}
-      {!showOnlyBrands && renderOtherFilters()}
-    </>
-  );
+  return showOnlyBrands ? renderBrandFilters() : renderOtherFilters();
 };

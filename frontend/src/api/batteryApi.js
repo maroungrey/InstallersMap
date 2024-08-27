@@ -27,9 +27,7 @@ export const fetchBatteries = async ({
     console.log('Fetching batteries with params:', params);
 
     const response = await axios.get(`${API_BASE_URL}/batteries`, { params });
-
-    console.log('Raw API Response:', response);
-    console.log('API Response data:', response.data);
+    console.log('Full API Response:', response.data);
 
     // Ensure allBrands is extracted correctly
     const allBrands = response.data.allBrands || [];
@@ -40,7 +38,7 @@ export const fetchBatteries = async ({
       currentPage: response.data.currentPage,
       totalPages: response.data.totalPages,
       totalCount: response.data.totalCount,
-      allBrands: allBrands,
+      allBrands: response.data.allBrands || [],
       hasMore: response.data.currentPage < response.data.totalPages
     };
   } catch (error) {

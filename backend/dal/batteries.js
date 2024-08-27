@@ -13,3 +13,5 @@ const getAllBatteries = (callback) => {
 module.exports = {
     getAllBatteries
 };
+
+//deprecation

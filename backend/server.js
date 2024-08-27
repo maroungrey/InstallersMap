@@ -21,9 +21,9 @@ app.listen(PORT, () => {
 });
 
 process.on('SIGINT', () => {
-    // Assuming you have a db connection to close
-    if (db) {
-        db.end((err) => {
+    const { specsDb } = require('./db');
+    if (specsDb) {
+        specsDb.end((err) => {
             if (err) {
                 console.log('Error during disconnection:', err);
             }

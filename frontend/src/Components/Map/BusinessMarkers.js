@@ -2,7 +2,6 @@ import React, { useState, useCallback, memo } from 'react';
 import { Marker, Popup, useMap } from "react-leaflet";
 import { Icon } from "leaflet";
 import 'leaflet/dist/leaflet.css';
-import '../../Styles/MapComponent.css';
 
 const BusinessMarkers = memo(({ businesses }) => {
   const map = useMap();

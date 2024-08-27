@@ -1,0 +1,75 @@
+  /* Report an Issue */
+  
+  .flag-hover {
+    color: #6c757d; /* Default flag color */
+    transition: color 0.3s ease;
+  }
+  
+  .flag-hover-container:hover .flag-hover {
+    color: red; /* Flag turns red on hover */
+  }
+  
+  .popup-text {
+    display: none;
+    position: fixed; /* Use fixed positioning to ensure it's not constrained by container */
+    background-color: #333;
+    color: #fff;
+    padding: 5px;
+    border-radius: 3px;
+    font-size: 12px;
+    white-space: nowrap; /* Ensure text stays in one line */
+    z-index: 1000; /* Bring it to the top layer */
+    transform: translate(-50%, 5px); /* Center it and move it below the flag */
+  }
+  
+  .flag-hover-container {
+    position: relative;
+  }
+  
+  .flag-hover-container:hover .popup-text {
+    display: block; /* Show popup text on hover */
+  }
+
+
+/* Map Page */
+
+.cluster-icon {
+    height: 3rem;
+    width: 3rem;
+    border-radius: 50%;
+    background-color: rgba(255, 0, 0, 0.6);
+    transform: translate(-25%, -25%);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: 600;
+    font-size: 1.5rem;
+  }
+
+  .list-group-item-hover {
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  
+  .list-group-item-hover:hover {
+    background-color: #f0f0f0; /* Light gray on hover */
+  }
+
+  
+  /* Battery Comparison Page*/
+
+  .battery-card-hover {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+  
+  .battery-card-hover:hover {
+    transform: scale(1.03);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    z-index: 1;
+  }
+  
+  /* Ensure the checkbox and flag icon don't grow */
+  .battery-card-hover:hover .form-check,
+  .battery-card-hover:hover .flag-hover-container {
+    transform: scale(0.97);
+  }

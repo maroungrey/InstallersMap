@@ -3,7 +3,6 @@ import { MapContainer, TileLayer, useMap } from "react-leaflet";
 import MarkerClusterGroup from "react-leaflet-cluster";
 import { divIcon, point } from "leaflet";
 import 'leaflet/dist/leaflet.css';
-import '../../Styles/MapComponent.css';
 import BusinessMarkers from './BusinessMarkers';
 
 function MapEvents({ onMapLoad }) {

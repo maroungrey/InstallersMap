@@ -29,10 +29,6 @@ export const fetchBatteries = async ({
     const response = await axios.get(`${API_BASE_URL}/batteries`, { params });
     console.log('Full API Response:', response.data);
 
-    // Ensure allBrands is extracted correctly
-    const allBrands = response.data.allBrands || [];
-    console.log('Extracted allBrands:', allBrands);
-
     return {
       data: response.data.batteries || [],
       currentPage: response.data.currentPage,

@@ -7,6 +7,9 @@ export const useBatteryData = (filters, sortBy, searchTerm, page) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [hasMore, setHasMore] = useState(true);
+  const [totalCount, setTotalCount] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
 
   const loadBatteries = useCallback(async () => {
     setLoading(true);
@@ -22,6 +25,9 @@ export const useBatteryData = (filters, sortBy, searchTerm, page) => {
         setBatteries(response.data);
         setAllBrands(response.allBrands);
         setHasMore(response.hasMore);
+        setTotalCount(response.totalCount);
+        setCurrentPage(response.currentPage);
+        setTotalPages(response.totalPages);
         setError(null);
     } catch (err) {
         setError('Failed to fetch batteries. Please try again later.');
@@ -29,11 +35,21 @@ export const useBatteryData = (filters, sortBy, searchTerm, page) => {
     } finally {
         setLoading(false);
     }
-}, [filters, sortBy, searchTerm, page]);
+  }, [filters, sortBy, searchTerm, page]);
 
   useEffect(() => {
     loadBatteries();
   }, [loadBatteries]);
 
-  return { batteries, allBrands, loading, error, hasMore };
+  return { 
+    batteries, 
+    allBrands, 
+    loading, 
+    error, 
+    hasMore,
+    totalCount,
+    currentPage,
+    totalPages,
+    loadBatteries  // Expose this function in case you need to manually reload
+  };
 };

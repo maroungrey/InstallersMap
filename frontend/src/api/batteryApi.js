@@ -1,8 +1,13 @@
 import axios from 'axios';
+import { debounce } from 'lodash'; // You might need to install lodash
 
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8081';
 
-console.log('API_BASE_URL:', API_BASE_URL);
+const debouncedFetch = debounce((params, callback) => {
+  axios.get(`${API_BASE_URL}/batteries`, { params })
+    .then(response => callback(null, response))
+    .catch(error => callback(error));
+}, 300);
 
 export const fetchBatteries = async ({
   brands = [],
@@ -13,7 +18,7 @@ export const fetchBatteries = async ({
   page = 1,
   limit = 12
 }) => {
-  try {
+  return new Promise((resolve, reject) => {
     const params = {
       brands: brands.join(','),
       voltage,
@@ -24,21 +29,20 @@ export const fetchBatteries = async ({
       limit
     };
 
-    console.log('Fetching batteries with params:', params);
-
-    const response = await axios.get(`${API_BASE_URL}/batteries`, { params });
-    console.log('Full API Response:', response.data);
-
-    return {
-      data: response.data.batteries || [],
-      currentPage: response.data.currentPage,
-      totalPages: response.data.totalPages,
-      totalCount: response.data.totalCount,
-      allBrands: response.data.allBrands || [],
-      hasMore: response.data.currentPage < response.data.totalPages
-    };
-  } catch (error) {
-    console.error('Error fetching batteries:', error);
-    throw error;
-  }
+    debouncedFetch(params, (error, response) => {
+      if (error) {
+        console.error('Error fetching batteries:', error);
+        reject(error);
+      } else {
+        resolve({
+          data: response.data.batteries || [],
+          currentPage: response.data.currentPage,
+          totalPages: response.data.totalPages,
+          totalCount: response.data.totalCount,
+          allBrands: response.data.allBrands || [],
+          hasMore: response.data.currentPage < response.data.totalPages
+        });
+      }
+    });
+  });
 };

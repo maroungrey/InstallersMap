@@ -1,4 +1,4 @@
-import React from 'react';
+import { useState, useCallback } from 'react';
 import { Container, Row, Col, Button } from 'react-bootstrap';
 import { BatteryFilters } from '../Components/Batteries/BatteryFilters';
 import { BatteryGrid } from '../Components/Batteries/BatteryGrid';
@@ -39,6 +39,13 @@ const BatteryComparison = () => {
     console.log('Suggesting a battery based on current filters and preferences');
   };
 
+  const handleBrandFilterChange = useCallback((newFilters) => {
+    handleFilterChange(prevFilters => ({
+      ...prevFilters,
+      ...newFilters
+    }));
+  }, [handleFilterChange]);
+
   return (
     <Container fluid className="my-4">
       {selectedBatteries.length > 0 && (
@@ -53,25 +60,28 @@ const BatteryComparison = () => {
       <Row>
         <Col md={3}>
           <BatteryFilters
-            filters={filters}
-            setFilters={handleFilterChange}
+            sortBy={sortBy}
+            setSortBy={handleSortChange}
+            searchTerm={searchTerm}
+            setSearchTerm={handleSearchChange}
             allBrands={allBrands}
             showOnlyBrands={true}
             onSuggestBattery={handleSuggestBattery}
+            onFilterChange={handleBrandFilterChange}
           />
         </Col>
         <Col md={9}>
           <Row>
             <Col xs={12}>
               <BatteryFilters
-                filters={filters}
-                setFilters={handleFilterChange}
                 sortBy={sortBy}
                 setSortBy={handleSortChange}
                 searchTerm={searchTerm}
                 setSearchTerm={handleSearchChange}
                 allBrands={allBrands}
                 showOnlyBrands={false}
+                onSuggestBattery={handleSuggestBattery}
+                onFilterChange={handleBrandFilterChange}
               />
             </Col>
           </Row>

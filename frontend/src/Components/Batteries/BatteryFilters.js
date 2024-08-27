@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, Row, Col, Form, Button } from 'react-bootstrap';
 import { Search, Lightbulb } from 'lucide-react';
 
@@ -9,8 +9,25 @@ export const BatteryFilters = ({
   setSearchTerm, 
   allBrands = [],
   showOnlyBrands = false,
-  onSuggestBattery
+  onSuggestBattery,
+  onFilterChange
 }) => {
+  const [selectedBrands, setSelectedBrands] = useState([]);
+
+  useEffect(() => {
+    onFilterChange({ brands: selectedBrands });
+  }, [selectedBrands, onFilterChange]);
+
+  const handleBrandChange = (brand) => {
+    setSelectedBrands(prevBrands => {
+      if (prevBrands.includes(brand)) {
+        return prevBrands.filter(b => b !== brand);
+      } else {
+        return [...prevBrands, brand];
+      }
+    });
+  };
+
   const renderBrandFilters = () => (
     <Card className="mb-4">
       <Card.Body>
@@ -23,6 +40,8 @@ export const BatteryFilters = ({
                 type="checkbox"
                 id={`brand-${brand}`}
                 label={brand}
+                checked={selectedBrands.includes(brand)}
+                onChange={() => handleBrandChange(brand)}
               />
             ))
           ) : (
@@ -81,7 +100,8 @@ export const BatteryFilters = ({
 
   return (
     <>
-      {showOnlyBrands ? renderBrandFilters() : renderOtherFilters()}
+      {renderBrandFilters()}
+      {!showOnlyBrands && renderOtherFilters()}
     </>
   );
 };

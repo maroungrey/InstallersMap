@@ -42,9 +42,9 @@ export const ComparisonSection = ({ selectedBatteries, onClearSelection, onRemov
     );
   };
 
-  const handleGenerateCharts = () => {
-    setShowCharts(true);
-  };
+  // const handleGenerateCharts = () => {
+  //   setShowCharts(true);
+  // };
 
   return (
     <Row className="mt-5">
@@ -82,7 +82,7 @@ export const ComparisonSection = ({ selectedBatteries, onClearSelection, onRemov
         </Table>
       </Col>
       
-      <Col xs={12} className="mb-4">
+      {/* <Col xs={12} className="mb-4">
         <h3>Select Comparison Charts</h3>
         <Form>
           <Row>
@@ -109,20 +109,15 @@ export const ComparisonSection = ({ selectedBatteries, onClearSelection, onRemov
           <FaChartBar className="me-2" />
           Generate Selected Charts
         </Button>
-      </Col>
+      </Col> */}
 
-      {showCharts && (
+      {/* {showCharts && (
         <ComparisonCharts 
           selectedBatteries={selectedBatteries}
           selectedChartOptions={selectedChartOptions}
         />
-      )}
+      )} */}
 
-      <Col xs={12} className="mt-4">
-        <Button variant="primary" onClick={() => {/* Implement export logic */}}>Export Comparison</Button>{' '}
-        <Button variant="secondary" onClick={() => {/* Implement save favorites logic */}}>Save Favorites</Button>{' '}
-        <Button variant="danger" onClick={onClearSelection}>Clear Selection</Button>
-      </Col>
     </Row>
   );
 };

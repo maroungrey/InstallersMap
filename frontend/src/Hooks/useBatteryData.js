@@ -34,13 +34,13 @@ export const useBatteryData = (filters, sortBy, searchTerm) => {
       setPage(currentPage);
       setError(null);
 
-      console.log('Data loaded:', {
-        totalLoaded,
-        totalCount: response.totalCount,
-        moreAvailable,
-        isLoadingMore,
-        newBatteriesCount: newBatteries.length
-      });
+      // console.log('Data loaded:', {
+      //   totalLoaded,
+      //   totalCount: response.totalCount,
+      //   moreAvailable,
+      //   isLoadingMore,
+      //   newBatteriesCount: newBatteries.length
+      // });
     } catch (err) {
       setError('Failed to fetch batteries. Please try again later.');
       console.error('Error fetching batteries:', err);

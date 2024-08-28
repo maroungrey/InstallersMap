@@ -1,8 +1,10 @@
-import { useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Container, Row, Col, Button } from 'react-bootstrap';
 import { BatteryFilters } from '../Components/Batteries/BatteryFilters';
 import { BatteryGrid } from '../Components/Batteries/BatteryGrid';
 import { ComparisonSection } from '../Components/Batteries/ComparisonSection';
+import { BatteryDetailView } from '../Components/Batteries/BatteryDetailView';
+import ReportForm from '../Components/Batteries/ReportForm';
 import { useBatteryData } from '../Hooks/useBatteryData';
 import { useFilters } from '../Hooks/useFilters';
 import { useBatterySelection } from '../Hooks/useBatterySelection';
@@ -34,6 +36,10 @@ const BatteryComparison = () => {
     clearSelection,
   } = useBatterySelection();
 
+  const [showDetailView, setShowDetailView] = useState(false);
+  const [selectedBattery, setSelectedBattery] = useState(null);
+  const [showReportForm, setShowReportForm] = useState(false);
+
   const handleSuggestBattery = () => {
     // Implement your battery suggestion logic here
     console.log('Suggesting a battery based on current filters and preferences');
@@ -45,14 +51,24 @@ const BatteryComparison = () => {
     }));
   }, [handleFilterChange]);
 
-  useEffect(() => {
-    console.log('Component state:', {
-      batteriesCount: batteries.length,
-      hasMore,
-      totalCount,
-      filters
-    });
-  }, [batteries, hasMore, totalCount, filters]);
+  const handleViewDetails = (battery) => {
+    setSelectedBattery(battery);
+    setShowDetailView(true);
+  };
+
+  const handleReportIssue = (battery) => {
+    setSelectedBattery(battery);
+    setShowReportForm(true);
+  };
+
+  // useEffect(() => {
+  //   console.log('Component state:', {
+  //     batteriesCount: batteries.length,
+  //     hasMore,
+  //     totalCount,
+  //     filters
+  //   });
+  // }, [batteries, hasMore, totalCount, filters]);
 
   return (
     <Container fluid className="my-4">
@@ -101,8 +117,8 @@ const BatteryComparison = () => {
                 error={error}
                 onSelectBattery={handleSelectBattery}
                 selectedBatteries={selectedBatteries}
-                // onReportIssue={handleReportIssue}
-                // onViewDetails={handleViewDetails}
+                onReportIssue={handleReportIssue}
+                onViewDetails={handleViewDetails}
               />
                {hasMore ? (
                   <div className="text-center mt-3">
@@ -121,6 +137,17 @@ const BatteryComparison = () => {
           </Row>
         </Col>
       </Row>
+      <BatteryDetailView
+        show={showDetailView}
+        onHide={() => setShowDetailView(false)}
+        battery={selectedBattery}
+      />
+
+      <ReportForm
+        show={showReportForm}
+        onHide={() => setShowReportForm(false)}
+        battery={selectedBattery}
+      />
     </Container>
   );
 };

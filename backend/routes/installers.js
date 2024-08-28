@@ -1,15 +1,26 @@
 const express = require('express');
 const router = express.Router();
-const { getAllInstallers } = require('../dal/installers');
+const { getInstallers, getTables } = require('../controllers/installersController');
 
-router.get('/', (req, res) => {
-    getAllInstallers((err, installers) => {
-        if (err) {
-            console.error('Error fetching installers:', err);
-            return res.status(500).json({ error: 'Internal server error' });
-        }
+router.get('/', async (req, res) => {
+    const { table = 'golf-cart' } = req.query;
+    try {
+        const installers = await getInstallers(table);
         res.json(installers);
-    });
+    } catch (err) {
+        console.error('Error in installers route:', err);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+router.get('/tables', async (req, res) => {
+    try {
+        const tables = await getTables();
+        res.json(tables);
+    } catch (err) {
+        console.error('Error fetching tables:', err);
+        res.status(500).json({ error: 'Internal server error' });
+    }
 });
 
 module.exports = router;

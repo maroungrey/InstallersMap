@@ -1,54 +1,29 @@
-import React, { useRef, useEffect, useState } from 'react';
-import ReportIssueForm from './ReportIssueForm';
-import BusinessList from './BusinessList';
-import SidebarControls from './SidebarControls';
-import { useGeocode } from '../../../Hooks/useGeocode';
-import { usePopupPosition } from '../../../Hooks/usePopupPosition';
-import { useSelectedBusiness } from '../../../Hooks/useSelectedBusiness';
-import { useSortedBusinesses } from '../../../Hooks/useSortedBusinesses';
+import React from 'react';
+import { ListGroup } from 'react-bootstrap';
 
-function Sidebar({ businesses, onBusinessClick, selectedBusinessIndex, onCoordinatesUpdate, mapCenter }) {
-  const businessRefs = useRef([]);
-  const [searchValue, setSearchValue] = useState('');
-
-  const sortedBusinesses = useSortedBusinesses(businesses, mapCenter);
-
-  const { shouldGeocode, geocodeError, startGeocoding } = useGeocode(searchValue, onCoordinatesUpdate);
-  const { popupPosition, handleMouseEnter } = usePopupPosition();
-  const { selectedBusiness, showReportForm, handleFlagClick, handleCloseReportForm } = useSelectedBusiness();
-
-  useEffect(() => {
-    if (selectedBusinessIndex !== null && businessRefs.current[selectedBusinessIndex]) {
-      businessRefs.current[selectedBusinessIndex].scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-  }, [selectedBusinessIndex]);
-
+const Sidebar = React.memo(({ businesses, onBusinessClick, selectedBusinessIndex }) => {
   return (
-    <div>
-      <SidebarControls 
-        searchValue={searchValue} 
-        handleSearchChange={setSearchValue} 
-        startGeocoding={startGeocoding} 
-        geocodeError={geocodeError} 
-      />
-      <div style={{ maxHeight: '500px', overflowY: 'auto' }}>
-        <BusinessList 
-          businesses={sortedBusinesses} 
-          selectedBusinessIndex={selectedBusinessIndex} 
-          onBusinessClick={onBusinessClick}
-          handleFlagClick={handleFlagClick}
-          handleMouseEnter={handleMouseEnter}
-          popupPosition={popupPosition}
-          businessRefs={businessRefs}
-        />
+    <div className="sidebar d-flex flex-column h-100">
+      <div className="business-list flex-grow-1 overflow-auto">
+        <ListGroup>
+          {businesses.map((business, index) => (
+            <ListGroup.Item
+              key={business.id}
+              action
+              onClick={() => onBusinessClick(index)}
+              active={index === selectedBusinessIndex}
+            >
+              <h5>{business.name}</h5>
+              <p>{business.address}</p>
+              <p>{business.phone}</p>
+            </ListGroup.Item>
+          ))}
+        </ListGroup>
       </div>
-      <ReportIssueForm 
-        show={showReportForm} 
-        handleClose={handleCloseReportForm} 
-        business={selectedBusiness} 
-      />
     </div>
   );
-}
+});
+
+Sidebar.displayName = 'Sidebar';
 
 export default Sidebar;

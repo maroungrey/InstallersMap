@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { Card, Row, Col, Form, Button } from 'react-bootstrap';
 import { Search, Lightbulb, Battery } from 'lucide-react';
 
@@ -15,10 +15,6 @@ export const BatteryFilters = ({
   setSelectedVoltage,
   selectedBrands
 }) => {
-  useEffect(() => {
-    console.log('BatteryFilters: selectedBrands', selectedBrands);
-  }, [selectedBrands]);
-
   const handleBrandChange = (brand) => {
     const updatedBrands = selectedBrands.includes(brand)
       ? selectedBrands.filter(b => b !== brand)
@@ -76,19 +72,18 @@ export const BatteryFilters = ({
                     onChange={(e) => setSortBy(e.target.value)}
                   >
                     <option value="">Select...</option>
-                    <option value="capacity">Highest Capacity</option>
-                    <option value="warranty">Longest Warranty</option>
-                    <option value="weight">Lowest Weight</option>
-                    <option value="kWh">Highest kWh</option>
+                    <option value="Total kWh">Highest kWh</option>
+                    <option value="Full Warranty Years">Highest Warranty</option>
+                    <option value="Ah Capacity">Highest Capacity</option>
                   </Form.Select>
                 </Form.Group>
               </Col>
-              <Col xs="auto">
+              {/* <Col xs="auto">
                 <Button variant="outline-primary" onClick={onSuggestBattery}>
                   <Lightbulb size={20} className="me-2" />
                   Suggest Battery
                 </Button>
-              </Col>
+              </Col> */}
             </Row>
           </Col>
         </Row>

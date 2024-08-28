@@ -29,6 +29,10 @@ export const BatteryGrid = ({
     onSelectBattery(battery);
   };
 
+  const getCategoryVoltage = (sourceTable) => {
+    return sourceTable.replace('v', '');
+  };
+
   return (
     <Row>
       {batteries.map((battery) => (
@@ -45,8 +49,8 @@ export const BatteryGrid = ({
                 <div title="Capacity">
                   <FaBatteryFull /> {battery['Ah Capacity']} Ah
                 </div>
-                <div title="Voltage">
-                  <FaBolt /> {battery['Nominal V']} V
+                <div title="Category Voltage">
+                  <FaBolt /> {getCategoryVoltage(battery.sourceTable)}V
                 </div>
               </div>
               <div className="mt-2 d-flex justify-content-between align-items-center">

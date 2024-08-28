@@ -3,7 +3,7 @@ const util = require('util');
 
 const query = util.promisify(specsDb.query).bind(specsDb);
 
-const allowedSortColumns = ['Ah Capacity', 'Warranty', 'Weight', 'kWh', 'id'];
+const allowedSortOptions = ['Total kWh', 'Full Warranty Years', 'Ah Capacity'];
 const voltageTables = ['48v', '36v', '24v'];
 
 exports.getBatteries = async (req, res) => {
@@ -52,14 +52,19 @@ exports.getBatteries = async (req, res) => {
         }
 
         // Sort the combined results
-        if (sortBy && allowedSortColumns.includes(sortBy.replace(/ DESC| ASC/, ''))) {
+        if (sortBy && allowedSortOptions.includes(sortBy)) {
             allResults.sort((a, b) => {
-                if (a[sortBy] < b[sortBy]) return -1;
-                if (a[sortBy] > b[sortBy]) return 1;
-                return 0;
+                switch (sortBy) {
+                    case 'Total kWh':
+                        return parseFloat(b['Total kWh']) - parseFloat(a['Total kWh']); // Highest kWh
+                    case 'Full Warranty Years':
+                        return parseInt(b['Full Warranty Years']) - parseInt(a['Full Warranty Years']); // Highest Warranty
+                    case 'Ah Capacity':
+                        return parseFloat(b['Ah Capacity']) - parseFloat(a['Ah Capacity']); // Highest Capacity
+                    default:
+                        return 0;
+                }
             });
-        } else {
-            allResults.sort((a, b) => a.id - b.id);
         }
 
         const sanitizedPage = Math.max(1, Math.min(1000, parseInt(page) || 1));

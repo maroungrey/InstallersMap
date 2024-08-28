@@ -32,7 +32,7 @@ export const BatteryGrid = ({
   return (
     <Row>
       {batteries.map((battery) => (
-        <Col key={battery.id} xs={12} sm={6} md={4} className="mb-3">
+         <Col key={`${battery.id}-${battery.sourceTable}`} xs={12} sm={6} md={4} lg={3} className="mb-4">
           <Card  
             onClick={() => handleCardClick(battery)}
             className={selectedBatteries.some(b => b.id === battery.id) ? 'selected' : ''} 

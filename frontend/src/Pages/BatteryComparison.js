@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { Container, Row, Col, Button } from 'react-bootstrap';
 import { BatteryFilters } from '../Components/Batteries/BatteryFilters';
 import { BatteryGrid } from '../Components/Batteries/BatteryGrid';
@@ -19,6 +19,15 @@ const BatteryComparison = () => {
     handleSearchChange,
   } = useFilters();
 
+  const [selectedVoltage, setSelectedVoltage] = useState('All Voltages');
+  const [selectedBrands, setSelectedBrands] = useState([]);
+
+  const combinedFilters = useMemo(() => ({
+    ...filters,
+    voltage: selectedVoltage === 'All Voltages' ? '' : selectedVoltage,
+    brands: selectedBrands
+  }), [filters, selectedVoltage, selectedBrands]);
+
   const {
     batteries,
     allBrands,
@@ -27,7 +36,7 @@ const BatteryComparison = () => {
     hasMore,
     loadMore,
     totalCount
-  } = useBatteryData(filters, sortBy, searchTerm);
+  } = useBatteryData(combinedFilters, sortBy, searchTerm);
 
   const {
     selectedBatteries,
@@ -40,35 +49,33 @@ const BatteryComparison = () => {
   const [selectedBattery, setSelectedBattery] = useState(null);
   const [showReportForm, setShowReportForm] = useState(false);
 
-  const handleSuggestBattery = () => {
-    // Implement your battery suggestion logic here
+  const handleSuggestBattery = useCallback(() => {
     console.log('Suggesting a battery based on current filters and preferences');
-  };
-  const handleBrandFilterChange = useCallback((newFilters) => {
-    handleFilterChange(prevFilters => ({
-      ...prevFilters,
-      ...newFilters
-    }));
-  }, [handleFilterChange]);
+  }, []);
 
-  const handleViewDetails = (battery) => {
+  const handleBrandFilterChange = useCallback((brands) => {
+    console.log('Brand filter changed:', brands);
+    setSelectedBrands(brands);
+  }, []);
+
+  const handleVoltageChange = useCallback((voltage) => {
+    console.log('Voltage changed:', voltage);
+    setSelectedVoltage(voltage);
+  }, []);
+
+  const handleViewDetails = useCallback((battery) => {
     setSelectedBattery(battery);
     setShowDetailView(true);
-  };
+  }, []);
 
-  const handleReportIssue = (battery) => {
+  const handleReportIssue = useCallback((battery) => {
     setSelectedBattery(battery);
     setShowReportForm(true);
-  };
+  }, []);
 
-  // useEffect(() => {
-  //   console.log('Component state:', {
-  //     batteriesCount: batteries.length,
-  //     hasMore,
-  //     totalCount,
-  //     filters
-  //   });
-  // }, [batteries, hasMore, totalCount, filters]);
+  useEffect(() => {
+    console.log('Combined filters:', combinedFilters);
+  }, [combinedFilters]);
 
   return (
     <Container fluid className="my-4">
@@ -92,6 +99,9 @@ const BatteryComparison = () => {
             showOnlyBrands={true}
             onSuggestBattery={handleSuggestBattery}
             onFilterChange={handleBrandFilterChange}
+            selectedVoltage={selectedVoltage}
+            setSelectedVoltage={handleVoltageChange}
+            selectedBrands={selectedBrands}
           />
         </Col>
         <Col md={9}>
@@ -106,6 +116,9 @@ const BatteryComparison = () => {
                 showOnlyBrands={false}
                 onSuggestBattery={handleSuggestBattery}
                 onFilterChange={handleBrandFilterChange}
+                selectedVoltage={selectedVoltage}
+                setSelectedVoltage={handleVoltageChange}
+                selectedBrands={selectedBrands}
               />
             </Col>
           </Row>
@@ -120,23 +133,23 @@ const BatteryComparison = () => {
                 onReportIssue={handleReportIssue}
                 onViewDetails={handleViewDetails}
               />
-               {hasMore ? (
+               {hasMore && (
                   <div className="text-center mt-3">
                     <Button onClick={loadMore} disabled={loading}>
                       {loading ? 'Loading...' : 'Load More'}
                     </Button>
                   </div>
-                ) : (
-                  batteries.length > 0 && (
-                    <div className="text-center mt-3">
-                      <p>All batteries loaded. Total: {totalCount}</p>
-                    </div>
-                  )
+                )}
+                {!hasMore && batteries.length > 0 && (
+                  <div className="text-center mt-3">
+                    <p>All batteries loaded. Total: {totalCount}</p>
+                  </div>
                 )}
             </Col>
           </Row>
         </Col>
       </Row>
+
       <BatteryDetailView
         show={showDetailView}
         onHide={() => setShowDetailView(false)}

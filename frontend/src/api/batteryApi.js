@@ -14,7 +14,7 @@ export const fetchBatteries = async ({
   try {
     const params = {
       brands: brands.join(','),
-      voltage,
+      voltage: voltage === 'All Voltages' ? '' : voltage,
       chemistry,
       sortBy,
       searchTerm,
@@ -22,7 +22,11 @@ export const fetchBatteries = async ({
       limit
     };
 
+    console.log('Sending request with params:', params);
+
     const response = await axios.get(`${API_BASE_URL}/batteries`, { params });
+
+    console.log('Received response:', response.data);
 
     return {
       data: response.data.batteries || [],
@@ -32,6 +36,15 @@ export const fetchBatteries = async ({
     };
   } catch (error) {
     console.error('Error fetching batteries:', error);
-    throw error;
+    if (error.code === 'ERR_NETWORK') {
+      console.error('Network error. Please check if the server is running and accessible.');
+    }
+    return {
+      data: [],
+      allBrands: [],
+      hasMore: false,
+      totalCount: 0,
+      error: error.message
+    };
   }
 };

@@ -1,92 +1,76 @@
 const { specsDb } = require('../db');
 const util = require('util');
 
-// Promisify the query function
 const query = util.promisify(specsDb.query).bind(specsDb);
 
-// Whitelist of allowed columns for sorting
 const allowedSortColumns = ['Ah Capacity', 'Warranty', 'Weight', 'kWh', 'id'];
-
-// List of voltage tables
-const voltageTables = ['48v', '36v', '24v']; // Add or remove tables as needed
+const voltageTables = ['48v', '36v', '24v'];
 
 exports.getBatteries = async (req, res) => {
-    console.log('getBatteries function called');
+    console.log('getBatteries function called with query:', req.query);
     try {
-        // Fetch all unique brands from all tables
         const brandResults = await Promise.all(voltageTables.map(table => 
             query(`SELECT DISTINCT Brand FROM ${specsDb.escapeId(table)} ORDER BY Brand`)
         ));
         const allBrands = [...new Set(brandResults.flat().map(result => result.Brand))];
-        console.log('Mapped allBrands:', allBrands);
 
         const { brands, voltage, chemistry, sortBy, searchTerm, page = 1, limit = 12 } = req.query;
 
-        let queryStr = voltageTables.map(table => `
-            SELECT *, '${table}' AS sourceTable FROM ${specsDb.escapeId(table)} WHERE 1=1
-        `).join(' UNION ALL ');
-        
-        const queryParams = [];
+        const selectedBrands = brands ? brands.split(',').filter(brand => allBrands.includes(brand)) : [];
 
-        if (brands && brands.length > 0) {
-            const brandArray = brands.split(',').filter(brand => allBrands.includes(brand));
-            if (brandArray.length > 0) {
-                queryStr = queryStr.replace(/WHERE 1=1/g, `WHERE 1=1 AND Brand IN (${brandArray.map(() => '?').join(',')})`);
-                queryParams.push(...brandArray.flatMap(brand => Array(voltageTables.length).fill(brand)));
+        let allResults = [];
+        let totalCount = 0;
+
+        for (const table of voltageTables) {
+            if (voltage && table !== `${voltage}v`) continue;
+
+            let queryStr = `SELECT *, '${table}' AS sourceTable FROM ${specsDb.escapeId(table)} WHERE 1=1`;
+            const queryParams = [];
+
+            if (selectedBrands.length > 0) {
+                queryStr += ` AND Brand IN (${selectedBrands.map(() => '?').join(',')})`;
+                queryParams.push(...selectedBrands);
             }
-        }
 
-        if (voltage) {
-            const voltageTable = `${voltage}v`;
-            if (voltageTables.includes(voltageTable)) {
-                queryStr = `SELECT *, '${voltageTable}' AS sourceTable FROM ${specsDb.escapeId(voltageTable)} WHERE 1=1`;
-                if (queryParams.length > 0) {
-                    queryStr += ` AND Brand IN (${queryParams.map(() => '?').join(',')})`;
-                }
+            if (chemistry) {
+                queryStr += ' AND Chemistry = ?';
+                queryParams.push(chemistry);
             }
+
+            if (searchTerm) {
+                const searchPattern = `%${searchTerm.replace(/%/g, '\\%').replace(/_/g, '\\_')}%`;
+                queryStr += ' AND (Brand LIKE ? OR Name LIKE ?)';
+                queryParams.push(searchPattern, searchPattern);
+            }
+
+            console.log(`Executing query for ${table}:`, queryStr);
+            console.log('Query parameters:', queryParams);
+
+            const results = await query(queryStr, queryParams);
+            allResults = allResults.concat(results);
+            totalCount += results.length;
         }
 
-        if (chemistry) {
-            queryStr = queryStr.replace(/WHERE 1=1/g, 'WHERE 1=1 AND Chemistry = ?');
-            queryParams.push(...Array(voltageTables.length).fill(chemistry));
-        }
-
-        if (searchTerm) {
-            const searchPattern = `%${searchTerm.replace(/%/g, '\\%').replace(/_/g, '\\_')}%`;
-            queryStr = queryStr.replace(/WHERE 1=1/g, 'WHERE 1=1 AND (Brand LIKE ? OR Name LIKE ?)');
-            queryParams.push(...Array(voltageTables.length * 2).fill(searchPattern));
-        }
-
-        // Wrap the UNION ALL query in a subquery for sorting
-        queryStr = `SELECT * FROM (${queryStr}) AS combined`;
-
+        // Sort the combined results
         if (sortBy && allowedSortColumns.includes(sortBy.replace(/ DESC| ASC/, ''))) {
-            queryStr += ` ORDER BY ${specsDb.escapeId(sortBy)}`;
+            allResults.sort((a, b) => {
+                if (a[sortBy] < b[sortBy]) return -1;
+                if (a[sortBy] > b[sortBy]) return 1;
+                return 0;
+            });
         } else {
-            queryStr += ' ORDER BY id ASC';
+            allResults.sort((a, b) => a.id - b.id);
         }
 
-        // Add pagination
         const sanitizedPage = Math.max(1, Math.min(1000, parseInt(page) || 1));
         const sanitizedLimit = Math.max(1, Math.min(100, parseInt(limit) || 12));
-        const offset = (sanitizedPage - 1) * sanitizedLimit;
-        queryStr += ' LIMIT ? OFFSET ?';
-        queryParams.push(sanitizedLimit, offset);
+        const startIndex = (sanitizedPage - 1) * sanitizedLimit;
+        const endIndex = startIndex + sanitizedLimit;
 
-        console.log('Executing query:', queryStr);
-        console.log('Query parameters:', queryParams);
-
-        const batteries = await query(queryStr, queryParams);
-        console.log('Fetched batteries:', batteries);
-
-        // Get total count for filtered results
-        const countQueryStr = `SELECT COUNT(*) as total FROM (${queryStr.split(' LIMIT')[0]}) AS count_query`;
-        const totalCountResult = await query(countQueryStr, queryParams.slice(0, -2));
-        const totalCount = totalCountResult[0].total;
-        console.log('Total count:', totalCount);
+        const paginatedResults = allResults.slice(startIndex, endIndex);
 
         const response = {
-            batteries,
+            batteries: paginatedResults,
             currentPage: sanitizedPage,
             totalPages: Math.ceil(totalCount / sanitizedLimit),
             totalCount,

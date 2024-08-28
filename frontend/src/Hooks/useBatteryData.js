@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { fetchBatteries } from '../api/batteryApi';
 
 export const useBatteryData = (filters, sortBy, searchTerm) => {
@@ -10,7 +10,12 @@ export const useBatteryData = (filters, sortBy, searchTerm) => {
   const [page, setPage] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
 
+  const prevFiltersRef = useRef();
+  const prevSortByRef = useRef();
+  const prevSearchTermRef = useRef();
+
   const loadBatteries = useCallback(async (isLoadingMore = false) => {
+    if (loading) return;
     setLoading(true);
     try {
       const currentPage = isLoadingMore ? page + 1 : 1;
@@ -21,6 +26,11 @@ export const useBatteryData = (filters, sortBy, searchTerm) => {
         page: currentPage,
       });
       
+      if (response.error) {
+        setError(response.error);
+        return;
+      }
+
       const newBatteries = response.data;
       
       setBatteries(prev => isLoadingMore ? [...prev, ...newBatteries] : newBatteries);
@@ -33,14 +43,6 @@ export const useBatteryData = (filters, sortBy, searchTerm) => {
       
       setPage(currentPage);
       setError(null);
-
-      // console.log('Data loaded:', {
-      //   totalLoaded,
-      //   totalCount: response.totalCount,
-      //   moreAvailable,
-      //   isLoadingMore,
-      //   newBatteriesCount: newBatteries.length
-      // });
     } catch (err) {
       setError('Failed to fetch batteries. Please try again later.');
       console.error('Error fetching batteries:', err);
@@ -50,17 +52,27 @@ export const useBatteryData = (filters, sortBy, searchTerm) => {
   }, [filters, sortBy, searchTerm, page, batteries.length]);
 
   useEffect(() => {
-    setPage(1);
-    setBatteries([]);
-    setHasMore(true);
-    loadBatteries(false);
-  }, [filters, sortBy, searchTerm]);
+    const filtersChanged = JSON.stringify(filters) !== JSON.stringify(prevFiltersRef.current);
+    const sortByChanged = sortBy !== prevSortByRef.current;
+    const searchTermChanged = searchTerm !== prevSearchTermRef.current;
 
-  const loadMore = () => {
+    if (filtersChanged || sortByChanged || searchTermChanged) {
+      setPage(1);
+      setBatteries([]);
+      setHasMore(true);
+      loadBatteries(false);
+
+      prevFiltersRef.current = filters;
+      prevSortByRef.current = sortBy;
+      prevSearchTermRef.current = searchTerm;
+    }
+  }, [filters, sortBy, searchTerm, loadBatteries]);
+
+  const loadMore = useCallback(() => {
     if (!loading && hasMore) {
       loadBatteries(true);
     }
-  };
+  }, [loading, hasMore, loadBatteries]);
 
   return { 
     batteries, 

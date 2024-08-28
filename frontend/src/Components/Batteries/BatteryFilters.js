@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { Card, Row, Col, Form, Button } from 'react-bootstrap';
-import { Search, Lightbulb } from 'lucide-react';
+import { Search, Lightbulb, Battery } from 'lucide-react';
 
 export const BatteryFilters = ({ 
   sortBy, 
@@ -10,22 +10,20 @@ export const BatteryFilters = ({
   allBrands = [],
   showOnlyBrands = false,
   onSuggestBattery,
-  onFilterChange
+  onFilterChange,
+  selectedVoltage,
+  setSelectedVoltage,
+  selectedBrands
 }) => {
-  const [selectedBrands, setSelectedBrands] = useState([]);
-
   useEffect(() => {
-    onFilterChange({ brands: selectedBrands });
-  }, [selectedBrands, onFilterChange]);
+    console.log('BatteryFilters: selectedBrands', selectedBrands);
+  }, [selectedBrands]);
 
   const handleBrandChange = (brand) => {
-    setSelectedBrands(prevBrands => {
-      if (prevBrands.includes(brand)) {
-        return prevBrands.filter(b => b !== brand);
-      } else {
-        return [...prevBrands, brand];
-      }
-    });
+    const updatedBrands = selectedBrands.includes(brand)
+      ? selectedBrands.filter(b => b !== brand)
+      : [...selectedBrands, brand];
+    onFilterChange(updatedBrands);
   };
 
   const renderBrandFilters = () => (
@@ -92,6 +90,22 @@ export const BatteryFilters = ({
                 </Button>
               </Col>
             </Row>
+          </Col>
+        </Row>
+        <Row className="mt-3">
+          <Col xs={12} md={6}>
+            <Form.Group className="d-flex align-items-center">
+              <Battery size={20} className="me-2" />
+              <Form.Select
+                value={selectedVoltage}
+                onChange={(e) => setSelectedVoltage(e.target.value)}
+              >
+                <option value="All Voltages">All Voltages</option>
+                <option value="48">48V</option>
+                <option value="36">36V</option>
+                <option value="24">24V</option>
+              </Form.Select>
+            </Form.Group>
           </Col>
         </Row>
       </Card.Body>

@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { fetchBatteries } from '../api/batteryApi';
+import { fetchBatteries } from '../../api/batteryApi';
 
 export const useBatteryData = (filters, sortBy, searchTerm) => {
   const [batteries, setBatteries] = useState([]);

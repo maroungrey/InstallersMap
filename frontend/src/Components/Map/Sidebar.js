@@ -14,8 +14,8 @@ const Sidebar = React.memo(({ businesses, onBusinessClick, selectedBusinessIndex
               active={index === selectedBusinessIndex}
             >
               <h5>{business.name}</h5>
-              <p>{business.address}</p>
-              <p>{business.phone}</p>
+              <p className="mb-1">{business.address}</p>
+              <p className="mb-0">{business.phone}</p>
             </ListGroup.Item>
           ))}
         </ListGroup>

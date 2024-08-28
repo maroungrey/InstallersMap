@@ -5,9 +5,9 @@ import { BatteryGrid } from '../Components/Batteries/BatteryGrid';
 import { ComparisonSection } from '../Components/Batteries/ComparisonSection';
 import { BatteryDetailView } from '../Components/Batteries/BatteryDetailView';
 import ReportForm from '../Components/Batteries/ReportForm';
-import { useBatteryData } from '../Hooks/useBatteryData';
-import { useFilters } from '../Hooks/useFilters';
-import { useBatterySelection } from '../Hooks/useBatterySelection';
+import { useBatteryData } from '../Hooks/Comparison/useBatteryData';
+import { useFilters } from '../Hooks/Comparison/useFilters';
+import { useBatterySelection } from '../Hooks/Comparison/useBatterySelection';
 
 const BatteryComparison = () => {
   const {

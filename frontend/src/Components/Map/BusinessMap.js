@@ -4,13 +4,14 @@ import MarkerClusterGroup from "react-leaflet-cluster";
 import { divIcon, point } from "leaflet";
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import pinIcon from '../Assets/pin.png';
 
-// Fix for default icon
-delete L.Icon.Default.prototype._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: require('leaflet/dist/images/marker-icon-2x.png'),
-  iconUrl: require('leaflet/dist/images/marker-icon.png'),
-  shadowUrl: require('leaflet/dist/images/marker-shadow.png'),
+// Default icon
+const customIcon = new L.Icon({
+  iconUrl: pinIcon,
+  iconSize: [32, 32],
+  iconAnchor: [16, 32],
+  popupAnchor: [0, -32]
 });
 
 function MapController({ onMapLoad }) {
@@ -25,6 +26,10 @@ function MapController({ onMapLoad }) {
   return null;
 }
 
+const MAP_CENTER_LAT = process.env.REACT_APP_MAP_CENTER_LAT || 39.8283;
+const MAP_CENTER_LNG = process.env.REACT_APP_MAP_CENTER_LNG || -98.5795;
+const MAP_INITIAL_ZOOM = process.env.REACT_APP_MAP_INITIAL_ZOOM || 4;
+
 export default function BusinessMap({ businesses, onMarkerClick, onMapLoad }) {
   const createCustomClusterIcon = useCallback((cluster) => {
     return new divIcon({
@@ -36,8 +41,8 @@ export default function BusinessMap({ businesses, onMarkerClick, onMapLoad }) {
 
   return (
     <MapContainer 
-      center={[39.8283, -98.5795]} // Center of the US
-      zoom={4} 
+      center={[MAP_CENTER_LAT, MAP_CENTER_LNG]} // Center of the US
+      zoom={MAP_INITIAL_ZOOM}
       style={{ height: "100%", width: "100%" }}
       role="region"
       aria-label="Map of businesses"
@@ -54,13 +59,14 @@ export default function BusinessMap({ businesses, onMarkerClick, onMapLoad }) {
         {businesses.map((business) => {
           if (business.latitude && business.longitude) {
             return (
-              <Marker 
-                key={business.id} 
-                position={[business.latitude, business.longitude]}
-                eventHandlers={{
-                  click: () => onMarkerClick(business.id)
-                }}
-              >
+                <Marker 
+                  key={business.id} 
+                  position={[business.latitude, business.longitude]}
+                  icon={customIcon}  // Use the custom icon
+                  eventHandlers={{
+                    click: () => onMarkerClick(business.id)
+                  }}
+                >
                 <Popup>
                   <h3>{business.name}</h3>
                   <p>{business.address}</p>

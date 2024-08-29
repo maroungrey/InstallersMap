@@ -6,7 +6,6 @@ const BusinessItem = React.memo(({ business, isActive, onClick }) => (
     as="article"
     action
     onClick={onClick}
-    active={isActive}
   >
     <h5>{business.name}</h5>
     <p className="mb-1">{business.address}</p>
@@ -19,17 +18,17 @@ const BusinessItem = React.memo(({ business, isActive, onClick }) => (
   </ListGroup.Item>
 ));
 
-const Sidebar = React.memo(({ businesses, onBusinessClick, selectedBusinessIndex }) => {
+const Sidebar = React.memo(({ businesses, onBusinessClick, selectedBusinessId }) => {
   return (
     <div className="sidebar d-flex flex-column h-100">
       <div className="business-list flex-grow-1 overflow-auto">
         <ListGroup>
-          {businesses.map((business, index) => (
+          {businesses.map((business) => (
             <BusinessItem
               key={business.id}
               business={business}
-              isActive={index === selectedBusinessIndex}
-              onClick={() => onBusinessClick(business.id)}
+              isActive={business.id === selectedBusinessId} // Highlight based on ID
+              onClick={() => onBusinessClick(business.id, business.latitude, business.longitude)}
             />
           ))}
         </ListGroup>
@@ -37,6 +36,7 @@ const Sidebar = React.memo(({ businesses, onBusinessClick, selectedBusinessIndex
     </div>
   );
 });
+
 
 BusinessItem.displayName = 'BusinessItem';
 Sidebar.displayName = 'Sidebar';

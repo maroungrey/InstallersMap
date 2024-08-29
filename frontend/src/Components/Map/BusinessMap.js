@@ -22,20 +22,17 @@ const createCustomClusterIcon = (cluster) => {
   });
 };
 
-function MapController({ selectedBusiness }) {
-  const map = useMap();
-  
-  useEffect(() => {
-    if (selectedBusiness && selectedBusiness.latitude && selectedBusiness.longitude) {
-      map.setView([selectedBusiness.latitude, selectedBusiness.longitude], 15);
-    }
-  }, [map, selectedBusiness]);
-
-  return null;
-}
-
 export default function BusinessMap({ businesses, onMarkerClick, center, zoom, onBusinessesUpdate, selectedBusiness }) {
   const mapRef = useRef(null);
+
+  useEffect(() => {
+    if (mapRef.current) {
+      mapRef.current.setView(center, zoom, {
+        animate: true,
+        duration: 0.5, // duration in seconds
+      });
+    }
+  }, [center, zoom]);
 
   const markers = useMemo(() => {
     return businesses.map((business) => (
@@ -71,7 +68,7 @@ export default function BusinessMap({ businesses, onMarkerClick, center, zoom, o
       aria-label="Map of businesses"
       ref={mapRef}
     >
-      <MapController selectedBusiness={selectedBusiness} />
+      {/* <MapController selectedBusiness={selectedBusiness} /> */}
       <MapUpdateHandler businesses={businesses} onBusinessesUpdate={onBusinessesUpdate} />
       <TileLayer
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"

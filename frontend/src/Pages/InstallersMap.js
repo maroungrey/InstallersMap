@@ -7,6 +7,7 @@ import SearchBar from '../Components/Map/SearchBar';
 import useTableData from '../Hooks/Map/useTableData';
 import useBusinessData from '../Hooks/Map/useBusinessData';
 import useBusinessSelection from '../Hooks/Map/useBusinessSelection';
+import '../Styles/CustomStyles.css'
 
 const MAP_CENTER_LAT = process.env.REACT_APP_MAP_CENTER_LAT || 39.8283;
 const MAP_CENTER_LNG = process.env.REACT_APP_MAP_CENTER_LNG || -98.5795;
@@ -16,7 +17,7 @@ const ZOOM_LEVEL = 15;
 function InstallersMap() {
   const { tables, selectedTable, handleTableSelect, tableError } = useTableData();
   const { businesses, loading, error: businessError } = useBusinessData(selectedTable);
-  const { selectedBusinessIndex, handleBusinessClick, handleMarkerClick } = useBusinessSelection(businesses);
+  const { selectedBusinessId, handleBusinessClick, handleMarkerClick } = useBusinessSelection(businesses);
   const [mapCenter, setMapCenter] = useState([MAP_CENTER_LAT, MAP_CENTER_LNG]);
   const [mapZoom, setMapZoom] = useState(MAP_INITIAL_ZOOM);
   const [businessesWithDistances, setBusinessesWithDistances] = useState([]);
@@ -38,14 +39,13 @@ function InstallersMap() {
     }
   }, []);
 
-  const handleBusinessSelection = useCallback((index) => {
-    handleBusinessClick(index);
-    const selected = businessesWithDistances[index];
-    if (selected && selected.latitude && selected.longitude) {
-      setMapCenter([selected.latitude, selected.longitude]);
+  const handleBusinessSelection = useCallback((businessId, lat, lng) => {
+    handleBusinessClick(businessId);
+    if (lat && lng) {
+      setMapCenter([lat, lng]);
       setMapZoom(ZOOM_LEVEL);
     }
-  }, [businessesWithDistances, handleBusinessClick]);
+  }, [handleBusinessClick]);
 
   const handleMapMarkerClick = useCallback((businessId) => {
     handleMarkerClick(businessId);
@@ -78,7 +78,7 @@ function InstallersMap() {
             <Sidebar 
               businesses={sortedBusinesses}
               onBusinessClick={handleBusinessSelection}
-              selectedBusinessIndex={selectedBusinessIndex}
+              selectedBusinessId={selectedBusinessId} // Pass the selected business ID
             />
           )}
         </Col>
@@ -90,6 +90,7 @@ function InstallersMap() {
               center={mapCenter}
               zoom={mapZoom}
               onBusinessesUpdate={setBusinessesWithDistances}
+              selectedBusiness={businesses.find(b => b.id === selectedBusinessId)}
             />
           )}
         </Col>
@@ -106,5 +107,6 @@ function InstallersMap() {
     </Container>
   );
 }
+
 
 export default InstallersMap;

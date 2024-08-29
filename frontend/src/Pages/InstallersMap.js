@@ -12,7 +12,7 @@ import '../Styles/CustomStyles.css'
 const MAP_CENTER_LAT = process.env.REACT_APP_MAP_CENTER_LAT || 39.8283;
 const MAP_CENTER_LNG = process.env.REACT_APP_MAP_CENTER_LNG || -98.5795;
 const MAP_INITIAL_ZOOM = process.env.REACT_APP_MAP_INITIAL_ZOOM || 4;
-const ZOOM_LEVEL = 15;
+const ZOOM_LEVEL = 10;
 
 function InstallersMap() {
   const { tables, selectedTable, handleTableSelect, tableError } = useTableData();

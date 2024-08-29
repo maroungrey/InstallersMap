@@ -46,19 +46,19 @@
     font-size: 1.5rem;
   }
 
-  .list-group-item-active {
-    background-color: #007bff !important; /* Blue background */
-    color: #fff !important; /* White text */
+  .map-sidebar-item {
     cursor: pointer;
-  }
-
-  .list-group-item-hover {
-    cursor: pointer;
-    transition: background-color 0.3s ease;
+    transition: background-color 0.3s ease, color 0.3s ease;
   }
   
-  .list-group-item-hover:hover {
-    background-color: #f0f0f0; /* Light gray on hover */
+  .map-sidebar-item:hover {
+    background-color: #f0f0f0 !important;
+  }
+  
+  .map-sidebar-item:focus,
+  .map-sidebar-item:active {
+    background-color: #0099ff2d !important;
+    outline: none;
   }
 
   

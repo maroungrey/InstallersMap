@@ -1,7 +1,3 @@
-Given that you've collected and shared a spreadsheet containing data from BigBattery's and competitors' spec sheets, it's important to handle this situation carefully. Here's how you could incorporate this into your README file while considering the legal implications:
-
----
-
 # Battery Comparison and Installer Finder Web Application
 
 ## Overview
@@ -76,3 +72,8 @@ Contributions are welcome! Please feel free to submit a pull request or open an 
 ---
 
 This README file now includes detailed clarification of the misunderstanding with your boss, the distinctions between your project and any prototypes you were exposed to, and your intention to use independently collected data. This documentation serves to protect your rights and establish the independence of your project.
+
+
+## License
+
+This project is licensed under the MIT License.

@@ -1,12 +1,12 @@
-import React, { useCallback, useEffect } from 'react';
-import { MapContainer, TileLayer, useMap, Marker, Popup } from "react-leaflet";
+import React, { useMemo, useRef, useEffect } from 'react';
+import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import MarkerClusterGroup from "react-leaflet-cluster";
 import { divIcon, point } from "leaflet";
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import pinIcon from '../Assets/pin.png';
+import MapUpdateHandler from './MapUpdateHandler';
 
-// Default icon
 const customIcon = new L.Icon({
   iconUrl: pinIcon,
   iconSize: [32, 32],
@@ -14,40 +14,65 @@ const customIcon = new L.Icon({
   popupAnchor: [0, -32]
 });
 
-function MapController({ onMapLoad }) {
+const createCustomClusterIcon = (cluster) => {
+  return divIcon({
+    html: `<div class="cluster-icon">${cluster.getChildCount()}</div>`,
+    className: "custom-marker-cluster",
+    iconSize: point(33, 33, true),
+  });
+};
+
+function MapController({ selectedBusiness }) {
   const map = useMap();
   
   useEffect(() => {
-    if (onMapLoad) {
-      onMapLoad(map);
+    if (selectedBusiness && selectedBusiness.latitude && selectedBusiness.longitude) {
+      map.setView([selectedBusiness.latitude, selectedBusiness.longitude], 15);
     }
-  }, [map, onMapLoad]);
+  }, [map, selectedBusiness]);
 
   return null;
 }
 
-const MAP_CENTER_LAT = process.env.REACT_APP_MAP_CENTER_LAT || 39.8283;
-const MAP_CENTER_LNG = process.env.REACT_APP_MAP_CENTER_LNG || -98.5795;
-const MAP_INITIAL_ZOOM = process.env.REACT_APP_MAP_INITIAL_ZOOM || 4;
+export default function BusinessMap({ businesses, onMarkerClick, center, zoom, onBusinessesUpdate, selectedBusiness }) {
+  const mapRef = useRef(null);
 
-export default function BusinessMap({ businesses, onMarkerClick, onMapLoad }) {
-  const createCustomClusterIcon = useCallback((cluster) => {
-    return new divIcon({
-      html: `<div class="cluster-icon">${cluster.getChildCount()}</div>`,
-      className: "custom-marker-cluster",
-      iconSize: point(33, 33, true),
-    });
-  }, []);
+  const markers = useMemo(() => {
+    return businesses.map((business) => (
+      business.latitude && business.longitude ? (
+        <Marker 
+          key={business.id} 
+          position={[business.latitude, business.longitude]}
+          icon={customIcon}
+          eventHandlers={{
+            click: () => {
+              onMarkerClick(business.id);
+              mapRef.current.setView([business.latitude, business.longitude], 15);
+            }
+          }}
+        >
+          <Popup>
+            <h3>{business.name}</h3>
+            <p>{business.address}</p>
+            <p>{business.phone}</p>
+            <a href={business.website} target="_blank" rel="noopener noreferrer">Website</a>
+          </Popup>
+        </Marker>
+      ) : null
+    )).filter(Boolean);
+  }, [businesses, onMarkerClick]);
 
   return (
     <MapContainer 
-      center={[MAP_CENTER_LAT, MAP_CENTER_LNG]} // Center of the US
-      zoom={MAP_INITIAL_ZOOM}
+      center={center}
+      zoom={zoom}
       style={{ height: "100%", width: "100%" }}
       role="region"
       aria-label="Map of businesses"
+      ref={mapRef}
     >
-      <MapController onMapLoad={onMapLoad} />
+      <MapController selectedBusiness={selectedBusiness} />
+      <MapUpdateHandler businesses={businesses} onBusinessesUpdate={onBusinessesUpdate} />
       <TileLayer
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         attribution="&copy; OpenStreetMap contributors"
@@ -55,30 +80,9 @@ export default function BusinessMap({ businesses, onMarkerClick, onMapLoad }) {
       <MarkerClusterGroup
         chunkedLoading
         iconCreateFunction={createCustomClusterIcon}
+        key={businesses.length}
       >
-        {businesses.map((business) => {
-          if (business.latitude && business.longitude) {
-            return (
-                <Marker 
-                  key={business.id} 
-                  position={[business.latitude, business.longitude]}
-                  icon={customIcon}  // Use the custom icon
-                  eventHandlers={{
-                    click: () => onMarkerClick(business.id)
-                  }}
-                >
-                <Popup>
-                  <h3>{business.name}</h3>
-                  <p>{business.address}</p>
-                  <p>{business.phone}</p>
-                  <a href={business.website} target="_blank" rel="noopener noreferrer">Website</a>
-                </Popup>
-              </Marker>
-            );
-          }
-          console.warn(`Invalid coordinates for business: ${business.id}`);
-          return null;
-        })}
+        {markers}
       </MarkerClusterGroup>
     </MapContainer>
   );

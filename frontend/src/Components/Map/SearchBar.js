@@ -10,7 +10,7 @@ const SearchBar = ({ onSearch }) => {
   };
 
   return (
-    <Form onSubmit={handleSubmit} className="mb-3">
+    <Form onSubmit={handleSubmit} className="my-1">
       <InputGroup>
         <Form.Control
           type="text"
@@ -18,7 +18,7 @@ const SearchBar = ({ onSearch }) => {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
         />
-        <Button variant="primary" type="submit">
+        <Button variant="primary" type="submit" className="rounded-end py-1 px-4">
           Search
         </Button>
       </InputGroup>

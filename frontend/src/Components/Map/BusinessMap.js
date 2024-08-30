@@ -4,6 +4,7 @@ import MarkerClusterGroup from "react-leaflet-cluster";
 import { divIcon, point } from "leaflet";
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import { FaFlag } from 'react-icons/fa';
 import pinIcon from '../Assets/pin.png';
 import MapUpdateHandler from './MapUpdateHandler';
 
@@ -22,7 +23,7 @@ const createCustomClusterIcon = (cluster) => {
   });
 };
 
-export default function BusinessMap({ businesses, onMarkerClick, center, zoom, onBusinessesUpdate, selectedBusiness }) {
+export default function BusinessMap({ businesses, onMarkerClick, center, zoom, onBusinessesUpdate, selectedBusiness, onReportIssue }) {
   const mapRef = useRef(null);
 
   useEffect(() => {
@@ -53,11 +54,22 @@ export default function BusinessMap({ businesses, onMarkerClick, center, zoom, o
             <p>{business.address}</p>
             <p>{business.phone}</p>
             <a href={business.website} target="_blank" rel="noopener noreferrer">Website</a>
+            <div 
+              className="flag-hover-container mt-2 text-end"
+              onClick={(e) => {
+                e.stopPropagation();
+                onReportIssue(business);
+              }}
+              style={{ cursor: 'pointer' }}
+              aria-label="Report an issue"
+            >
+              <FaFlag className="flag-hover" size={18} aria-hidden="true" />
+            </div>
           </Popup>
         </Marker>
       ) : null
     )).filter(Boolean);
-  }, [businesses, onMarkerClick]);
+  }, [businesses, onMarkerClick, onReportIssue]);
 
   return (
     <MapContainer 
@@ -68,7 +80,6 @@ export default function BusinessMap({ businesses, onMarkerClick, center, zoom, o
       aria-label="Map of businesses"
       ref={mapRef}
     >
-      {/* <MapController selectedBusiness={selectedBusiness} /> */}
       <MapUpdateHandler businesses={businesses} onBusinessesUpdate={onBusinessesUpdate} />
       <TileLayer
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"

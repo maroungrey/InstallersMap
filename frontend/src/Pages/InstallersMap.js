@@ -7,6 +7,7 @@ import SearchBar from '../Components/Map/SearchBar';
 import useTableData from '../Hooks/Map/useTableData';
 import useBusinessData from '../Hooks/Map/useBusinessData';
 import useBusinessSelection from '../Hooks/Map/useBusinessSelection';
+import ReportForm from '../Components/Map/ReportForm';
 import '../Styles/CustomStyles.css'
 
 const MAP_CENTER_LAT = process.env.REACT_APP_MAP_CENTER_LAT || 39.8283;
@@ -21,6 +22,8 @@ function InstallersMap() {
   const [mapCenter, setMapCenter] = useState([MAP_CENTER_LAT, MAP_CENTER_LNG]);
   const [mapZoom, setMapZoom] = useState(MAP_INITIAL_ZOOM);
   const [businessesWithDistances, setBusinessesWithDistances] = useState([]);
+  const [showReportForm, setShowReportForm] = useState(false);
+  const [reportingBusiness, setReportingBusiness] = useState(null);
 
   const error = tableError || businessError;
 
@@ -60,12 +63,29 @@ function InstallersMap() {
     return [...businessesWithDistances].sort((a, b) => (a.distance ?? Infinity) - (b.distance ?? Infinity));
   }, [businessesWithDistances]);
 
+  const handleReportIssue = useCallback((business) => {
+    setReportingBusiness(business);
+    setShowReportForm(true);
+  }, []);
+
+  const handleCloseReportForm = useCallback(() => {
+    setShowReportForm(false);
+    setReportingBusiness(null);
+  }, []);
+
   return (
     <Container fluid className="p-3" style={{ height: '100vh' }}>
       {error && <Alert variant="danger">Error: {error}</Alert>}
       <Row className="mb-3">
-        <Col>
+        <Col md={4}>
           <SearchBar onSearch={handleSearch} />
+        </Col>
+        <Col md={8}>
+          <TableSelector
+            tables={tables}
+            selectedTable={selectedTable}
+            onTableSelect={handleTableSelect}
+          />
         </Col>
       </Row>
       <Row className="h-75">
@@ -78,7 +98,8 @@ function InstallersMap() {
             <Sidebar 
               businesses={sortedBusinesses}
               onBusinessClick={handleBusinessSelection}
-              selectedBusinessId={selectedBusinessId} // Pass the selected business ID
+              selectedBusinessId={selectedBusinessId}
+              onReportIssue={handleReportIssue}
             />
           )}
         </Col>
@@ -91,19 +112,16 @@ function InstallersMap() {
               zoom={mapZoom}
               onBusinessesUpdate={setBusinessesWithDistances}
               selectedBusiness={businesses.find(b => b.id === selectedBusinessId)}
+              onReportIssue={handleReportIssue}
             />
           )}
         </Col>
       </Row>
-      <Row className="my-3">
-        <Col>
-          <TableSelector
-            tables={tables}
-            selectedTable={selectedTable}
-            onTableSelect={handleTableSelect}
-          />
-        </Col>
-      </Row>
+      <ReportForm
+        show={showReportForm}
+        onHide={handleCloseReportForm}
+        business={reportingBusiness}
+      />
     </Container>
   );
 }

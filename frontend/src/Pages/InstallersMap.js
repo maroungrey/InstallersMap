@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { Container, Row, Col, Alert, Spinner } from 'react-bootstrap';
 import BusinessMap from '../Components/Map/BusinessMap';
 import Sidebar from '../Components/Map/Sidebar';
@@ -24,6 +24,7 @@ function InstallersMap() {
   const [businessesWithDistances, setBusinessesWithDistances] = useState([]);
   const [showReportForm, setShowReportForm] = useState(false);
   const [reportingBusiness, setReportingBusiness] = useState(null);
+  const [openPopupId, setOpenPopupId] = useState(null);
 
   const error = tableError || businessError;
 
@@ -73,6 +74,14 @@ function InstallersMap() {
     setReportingBusiness(null);
   }, []);
 
+  const handlePopupToggle = useCallback((businessId) => {
+    setOpenPopupId(businessId);
+  }, []);
+
+  useEffect(() => {
+    console.log('openPopupId updated:', openPopupId); // Add this line
+  }, [openPopupId]);
+
   return (
     <Container fluid className="p-3" style={{ height: '100vh' }}>
       {error && <Alert variant="danger">Error: {error}</Alert>}
@@ -100,6 +109,7 @@ function InstallersMap() {
               onBusinessClick={handleBusinessSelection}
               selectedBusinessId={selectedBusinessId}
               onReportIssue={handleReportIssue}
+              openPopupId={openPopupId}
             />
           )}
         </Col>
@@ -113,6 +123,7 @@ function InstallersMap() {
               onBusinessesUpdate={setBusinessesWithDistances}
               selectedBusiness={businesses.find(b => b.id === selectedBusinessId)}
               onReportIssue={handleReportIssue}
+              onPopupToggle={handlePopupToggle}
             />
           )}
         </Col>

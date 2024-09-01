@@ -1,5 +1,5 @@
-import React, { useMemo, useRef, useEffect } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
+import React, { useMemo, useRef, useEffect, useState, useCallback } from 'react';
+import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents } from "react-leaflet";
 import MarkerClusterGroup from "react-leaflet-cluster";
 import { divIcon, point } from "leaflet";
 import L from 'leaflet';
@@ -23,17 +23,47 @@ const createCustomClusterIcon = (cluster) => {
   });
 };
 
-export default function BusinessMap({ businesses, onMarkerClick, center, zoom, onBusinessesUpdate, selectedBusiness, onReportIssue }) {
+export default function BusinessMap({ businesses, onMarkerClick, center, zoom, onBusinessesUpdate, selectedBusiness, onReportIssue, onPopupToggle }) {
   const mapRef = useRef(null);
+  const [openPopupId, setOpenPopupId] = useState(null);
 
   useEffect(() => {
-    if (mapRef.current) {
-      mapRef.current.setView(center, zoom, {
-        animate: true,
-        duration: 0.5, // duration in seconds
+    if (mapRef.current && !selectedBusiness) {
+      mapRef.current.flyTo(center, zoom, {
+        duration: 0.5,
       });
     }
-  }, [center, zoom]);
+  }, [center, zoom, selectedBusiness]);
+
+
+  function MapController({ selectedBusiness, onPopupToggle }) {
+    const map = useMap();
+    
+    useEffect(() => {
+      if (selectedBusiness && selectedBusiness.latitude && selectedBusiness.longitude) {
+        map.flyTo([selectedBusiness.latitude, selectedBusiness.longitude], 15, {
+          duration: 0.5,
+        });
+      }
+    }, [map, selectedBusiness]);
+  
+    useMapEvents({
+      popupopen: (e) => {
+        console.log('Popup opened:', e.popup);
+        const businessId = e.popup.options.businessId;
+        console.log('Business ID from popup:', businessId);
+        if (businessId) {
+          onPopupToggle(businessId);
+        }
+      },
+      popupclose: () => {
+        console.log('Popup closed');
+        onPopupToggle(null);
+      },
+    });
+  
+    return null;
+  }
 
   const markers = useMemo(() => {
     return businesses.map((business) => (
@@ -45,11 +75,10 @@ export default function BusinessMap({ businesses, onMarkerClick, center, zoom, o
           eventHandlers={{
             click: () => {
               onMarkerClick(business.id);
-              mapRef.current.setView([business.latitude, business.longitude], 15);
             }
           }}
         >
-          <Popup>
+          <Popup businessId={business.id}>
             <h3>{business.name}</h3>
             <p>{business.address}</p>
             <p>{business.phone}</p>
@@ -80,6 +109,7 @@ export default function BusinessMap({ businesses, onMarkerClick, center, zoom, o
       aria-label="Map of businesses"
       ref={mapRef}
     >
+      <MapController selectedBusiness={selectedBusiness} onPopupToggle={onPopupToggle} />
       <MapUpdateHandler businesses={businesses} onBusinessesUpdate={onBusinessesUpdate} />
       <TileLayer
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"

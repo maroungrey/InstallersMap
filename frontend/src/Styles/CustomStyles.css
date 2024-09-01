@@ -55,10 +55,10 @@
     background-color: #f0f0f0 !important;
   }
   
-  .map-sidebar-item:focus,
-  .map-sidebar-item:active {
-    background-color: #0099ff2d !important;
-    outline: none;
+  .map-sidebar-item.popup-open {
+    background-color: #e9ecef !important; /* Use !important to override Bootstrap styles if necessary */
+    border-left: 4px solid #007bff; /* Add a left border for more emphasis */
+    transition: background-color 0.3s ease, border-left 0.3s ease; /* Smooth transition */
   }
 
   

@@ -2,7 +2,7 @@ import React, { useCallback, useRef, useEffect } from 'react';
 import { ListGroup } from 'react-bootstrap';
 import { FaFlag } from 'react-icons/fa';
 
-const BusinessItem = React.memo(({ business, onClick, onReportIssue, isActive }) => {
+const BusinessItem = React.memo(({ business, onClick, onReportIssue, isActive, isPopupOpen }) => {
   const handleReportClick = useCallback((e) => {
     e.stopPropagation();
     onReportIssue(business);
@@ -11,7 +11,7 @@ const BusinessItem = React.memo(({ business, onClick, onReportIssue, isActive })
   return (
     <ListGroup.Item
       as="div"
-      className={`map-sidebar-item p-3 position-relative ${isActive ? 'active' : ''}`}
+      className={`map-sidebar-item p-3 position-relative ${isActive ? 'active' : ''} ${isPopupOpen ? 'popup-open' : ''}`}
       aria-selected={isActive}
       role="option"
     >
@@ -53,7 +53,9 @@ const BusinessItem = React.memo(({ business, onClick, onReportIssue, isActive })
   );
 });
 
-const Sidebar = React.memo(({ businesses, onBusinessClick, selectedBusinessId, onReportIssue }) => {
+const Sidebar = React.memo(({ businesses, onBusinessClick, selectedBusinessId, onReportIssue, openPopupId }) => {
+  console.log('Sidebar - openPopupId:', openPopupId);
+  
   const listRef = useRef(null);
 
   useEffect(() => {
@@ -98,6 +100,7 @@ const Sidebar = React.memo(({ businesses, onBusinessClick, selectedBusinessId, o
               key={business.id}
               business={business}
               isActive={business.id === selectedBusinessId}
+              isPopupOpen={business.id === openPopupId}
               onClick={() => onBusinessClick(business.id, business.latitude, business.longitude)}
               onReportIssue={onReportIssue}
             />

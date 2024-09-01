@@ -54,7 +54,7 @@ const BusinessItem = React.memo(({ business, onClick, onReportIssue, isActive, i
 });
 
 const Sidebar = React.memo(({ businesses, onBusinessClick, selectedBusinessId, onReportIssue, openPopupId }) => {
-  console.log('Sidebar - openPopupId:', openPopupId);
+  // console.log('Sidebar - openPopupId:', openPopupId);
   
   const listRef = useRef(null);
 

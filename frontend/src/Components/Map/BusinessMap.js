@@ -10,7 +10,7 @@ import MapUpdateHandler from './MapUpdateHandler';
 
 // Constants
 const MOBILE_BREAKPOINT = 768;
-const MOBILE_ZOOM = 12;
+const MOBILE_ZOOM = 15;
 const DESKTOP_ZOOM = 15;
 
 // Custom Icons
@@ -72,17 +72,21 @@ const MapController = ({ selectedBusiness, onPopupToggle, setMapInitialized, set
 };
 
 // Component: BusinessMarker
-const BusinessMarker = ({ business, onMarkerClick, onReportIssue }) => {
-  const lat = parseFloat(business.latitude);
-  const lng = parseFloat(business.longitude);
+const BusinessMarker = ({ business, onMarkerClick, onReportIssue, isSelected }) => {
+  const markerRef = useRef(null);
 
-  if (isNaN(lat) || isNaN(lng)) return null;
+  useEffect(() => {
+    if (isSelected && markerRef.current) {
+      markerRef.current.openPopup();
+    }
+  }, [isSelected]);
 
   return (
     <Marker 
-      position={[lat, lng]}
+      position={[parseFloat(business.latitude), parseFloat(business.longitude)]}
       icon={customIcon}
       eventHandlers={{ click: () => onMarkerClick(business.id) }}
+      ref={markerRef}
     >
       <Popup businessId={business.id}>
         <h3>{business.name}</h3>
@@ -150,10 +154,23 @@ const BusinessMap = ({ businesses, onMarkerClick, center, zoom, onBusinessesUpda
         business={business}
         onMarkerClick={onMarkerClick}
         onReportIssue={onReportIssue}
+        isSelected={business.id === selectedBusiness?.id}
       />
     )),
     [businesses, onMarkerClick, onReportIssue]
   );
+
+  useEffect(() => {
+    if (selectedBusiness && mapRef.current) {
+      const { latitude, longitude } = selectedBusiness;
+      const lat = parseFloat(latitude);
+      const lng = parseFloat(longitude);
+      if (!isNaN(lat) && !isNaN(lng)) {
+        const leafletMap = mapRef.current;
+        leafletMap.openPopup(lat, lng);
+      }
+    }
+  }, [selectedBusiness]);
 
   return (
     <div style={{ position: 'relative', height: '100%', width: '100%' }}>

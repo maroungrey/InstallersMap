@@ -44,6 +44,8 @@ function InstallersMap() {
   const [openPopupId, setOpenPopupId] = useState(null);
   const [activeTab, setActiveTab] = useState('list');
   const [isMobile, setIsMobile] = useState(window.innerWidth < MOBILE_BREAKPOINT);
+  const [mapKey, setMapKey] = useState(0);
+  
 
   // Refs
   const mapRef = useRef(null);
@@ -70,7 +72,7 @@ function InstallersMap() {
 
   useEffect(() => {
     if (mapContainerRef.current) {
-      mapContainerRef.current.style.height = isMobile ? 'calc(100vh - 200px)' : '100%';
+      mapContainerRef.current.style.height = isMobile ? '70vh' : '100%';
     }
     if (mapRef.current) {
       setTimeout(() => {
@@ -104,13 +106,18 @@ function InstallersMap() {
       if (!isNaN(lat) && !isNaN(lng)) {
         setMapCenter([lat, lng]);
         setMapZoom(ZOOM_LEVEL);
-        if (isMobile) setActiveTab('map');
+        setOpenPopupId(businessId);
+        if (isMobile) {
+          setActiveTab('map');
+          setMapKey(prevKey => prevKey + 1);
+        }
       } else {
         console.warn(`Invalid coordinates for business ${businessId}`);
         alert("This business doesn't have valid location data.");
       }
     }
   }, [businesses, handleBusinessClick, isMobile]);
+
 
   const handleMapMarkerClick = useCallback((businessId) => {
     handleMarkerClick(businessId);
@@ -145,7 +152,7 @@ function InstallersMap() {
   const renderMobileContent = () => (
     <Tabs activeKey={activeTab} onSelect={(k) => setActiveTab(k)} className="mb-3">
       <Tab eventKey="list" title="List">
-        <div style={{ height: 'calc(100vh - 200px)', overflowY: 'auto' }}>
+        <div style={{ height: '75vh', overflowY: 'auto' }}>
           <Sidebar 
             businesses={sortedBusinesses}
             onBusinessClick={handleBusinessSelection}
@@ -156,8 +163,9 @@ function InstallersMap() {
         </div>
       </Tab>
       <Tab eventKey="map" title="Map">
-        <div ref={mapContainerRef} style={{ width: '100%', height: 'calc(100vh - 200px)' }}>
+        <div ref={mapContainerRef} style={{ width: '100%', height: '70vh' }}>
           <BusinessMap
+            key={mapKey}
             businesses={businesses}
             onMarkerClick={handleMapMarkerClick}
             center={mapCenter}
@@ -167,6 +175,7 @@ function InstallersMap() {
             onReportIssue={handleReportIssue}
             onPopupToggle={handlePopupToggle}
             mapRef={mapRef}
+            isMobile={isMobile}
           />
         </div>
       </Tab>
@@ -185,7 +194,7 @@ function InstallersMap() {
         />
       </Col>
       <Col md={8} className="h-100">
-        <div ref={mapContainerRef} style={{ width: '100%', height: '100%' }}>
+        <div ref={mapContainerRef} style={{ width: '100%', height: '70vh' }}>
           <BusinessMap
             businesses={businesses}
             onMarkerClick={handleMapMarkerClick}
@@ -204,7 +213,7 @@ function InstallersMap() {
 
   // Main Render
   return (
-    <Container fluid className="p-3" style={{ height: '100vh' }}>
+    <Container fluid className="p-3" style={{ height: '70vh' }}>
       {error && <ErrorAlert message={error} />}
       <Row className="mb-3">
         <Col xs={12} md={4} className="mb-2 mb-md-0">

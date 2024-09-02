@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react';
-import { Container, Row, Col, Alert, Spinner,  Tabs, Tab } from 'react-bootstrap';
+import { Container, Row, Col, Alert, Spinner, Tabs, Tab } from 'react-bootstrap';
 import BusinessMap from '../Components/Map/BusinessMap';
 import Sidebar from '../Components/Map/Sidebar';
 import TableSelector from '../Components/Map/TableSelector';
@@ -8,18 +8,34 @@ import useTableData from '../Hooks/Map/useTableData';
 import useBusinessData from '../Hooks/Map/useBusinessData';
 import useBusinessSelection from '../Hooks/Map/useBusinessSelection';
 import ReportForm from '../Components/Map/ReportForm';
-import '../Styles/CustomStyles.css'
+import '../Styles/CustomStyles.css';
 
+// Constants
 const MAP_CENTER_LAT = process.env.REACT_APP_MAP_CENTER_LAT || 39.8283;
 const MAP_CENTER_LNG = process.env.REACT_APP_MAP_CENTER_LNG || -98.5795;
 const MAP_INITIAL_ZOOM = process.env.REACT_APP_MAP_INITIAL_ZOOM || 4;
 const ZOOM_LEVEL = 10;
 const MOBILE_BREAKPOINT = 768;
 
+// Helper Components
+const LoadingSpinner = () => (
+  <Spinner animation="border" role="status">
+    <span className="visually-hidden">Loading...</span>
+  </Spinner>
+);
+
+const ErrorAlert = ({ message }) => (
+  <Alert variant="danger">Error: {message}</Alert>
+);
+
+// Main Component
 function InstallersMap() {
+  // Custom Hooks
   const { tables, selectedTable, handleTableSelect, tableError } = useTableData();
   const { businesses, loading, error: businessError } = useBusinessData(selectedTable);
   const { selectedBusinessId, handleBusinessClick, handleMarkerClick } = useBusinessSelection(businesses);
+
+  // State
   const [mapCenter, setMapCenter] = useState([MAP_CENTER_LAT, MAP_CENTER_LNG]);
   const [mapZoom, setMapZoom] = useState(MAP_INITIAL_ZOOM);
   const [businessesWithDistances, setBusinessesWithDistances] = useState([]);
@@ -28,13 +44,24 @@ function InstallersMap() {
   const [openPopupId, setOpenPopupId] = useState(null);
   const [activeTab, setActiveTab] = useState('list');
   const [isMobile, setIsMobile] = useState(window.innerWidth < MOBILE_BREAKPOINT);
+
+  // Refs
+  const mapRef = useRef(null);
   const mapContainerRef = useRef(null);
 
+  // Derived State
   const error = tableError || businessError;
+  const sortedBusinesses = useMemo(() => {
+    return [...businessesWithDistances].sort((a, b) => (a.distance ?? Infinity) - (b.distance ?? Infinity));
+  }, [businessesWithDistances]);
 
+  // Effects
   useEffect(() => {
     const handleResize = () => {
       setIsMobile(window.innerWidth < MOBILE_BREAKPOINT);
+      if (mapRef.current) {
+        mapRef.current.invalidateSize();
+      }
     };
 
     window.addEventListener('resize', handleResize);
@@ -45,8 +72,14 @@ function InstallersMap() {
     if (mapContainerRef.current) {
       mapContainerRef.current.style.height = isMobile ? 'calc(100vh - 200px)' : '100%';
     }
+    if (mapRef.current) {
+      setTimeout(() => {
+        mapRef.current.invalidateSize();
+      }, 100);
+    }
   }, [isMobile, activeTab]);
 
+  // Callbacks
   const handleSearch = useCallback(async (query) => {
     try {
       const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`);
@@ -71,12 +104,9 @@ function InstallersMap() {
       if (!isNaN(lat) && !isNaN(lng)) {
         setMapCenter([lat, lng]);
         setMapZoom(ZOOM_LEVEL);
-        if (isMobile) {
-          setActiveTab('map');
-        }
+        if (isMobile) setActiveTab('map');
       } else {
         console.warn(`Invalid coordinates for business ${businessId}`);
-        // Optionally, show an alert to the user
         alert("This business doesn't have valid location data.");
       }
     }
@@ -97,10 +127,6 @@ function InstallersMap() {
     }
   }, [businesses, handleMarkerClick]);
 
-  const sortedBusinesses = useMemo(() => {
-    return [...businessesWithDistances].sort((a, b) => (a.distance ?? Infinity) - (b.distance ?? Infinity));
-  }, [businessesWithDistances]);
-
   const handleReportIssue = useCallback((business) => {
     setReportingBusiness(business);
     setShowReportForm(true);
@@ -115,75 +141,71 @@ function InstallersMap() {
     setOpenPopupId(businessId);
   }, []);
 
-  const renderContent = () => {
-    if (isMobile) {
-      return (
-        <Tabs
-          activeKey={activeTab}
-          onSelect={(k) => setActiveTab(k)}
-          className="mb-3"
-        >
-          <Tab eventKey="list" title="List">
-            <div style={{ height: 'calc(100vh - 200px)', overflowY: 'auto' }}>
-              <Sidebar 
-                businesses={sortedBusinesses}
-                onBusinessClick={handleBusinessSelection}
-                selectedBusinessId={selectedBusinessId}
-                onReportIssue={handleReportIssue}
-                openPopupId={openPopupId}
-              />
-            </div>
-          </Tab>
-          <Tab eventKey="map" title="Map">
-            <div ref={mapContainerRef} style={{ width: '100%', height: 'calc(100vh - 200px)' }}>
-              <BusinessMap
-                businesses={businesses}
-                onMarkerClick={handleMapMarkerClick}
-                center={mapCenter}
-                zoom={mapZoom}
-                onBusinessesUpdate={setBusinessesWithDistances}
-                selectedBusiness={businesses.find(b => b.id === selectedBusinessId)}
-                onReportIssue={handleReportIssue}
-                onPopupToggle={handlePopupToggle}
-              />
-            </div>
-          </Tab>
-        </Tabs>
-      );
-    } else {
-      return (
-        <Row className="h-100">
-          <Col md={4} className="border-end h-100 overflow-auto">
-            <Sidebar 
-              businesses={sortedBusinesses}
-              onBusinessClick={handleBusinessSelection}
-              selectedBusinessId={selectedBusinessId}
-              onReportIssue={handleReportIssue}
-              openPopupId={openPopupId}
-            />
-          </Col>
-          <Col md={8} className="h-100">
-            <div ref={mapContainerRef} style={{ width: '100%', height: '100%' }}>
-              <BusinessMap
-                businesses={businesses}
-                onMarkerClick={handleMapMarkerClick}
-                center={mapCenter}
-                zoom={mapZoom}
-                onBusinessesUpdate={setBusinessesWithDistances}
-                selectedBusiness={businesses.find(b => b.id === selectedBusinessId)}
-                onReportIssue={handleReportIssue}
-                onPopupToggle={handlePopupToggle}
-              />
-            </div>
-          </Col>
-        </Row>
-      );
-    }
-  };
+  // Render Helpers
+  const renderMobileContent = () => (
+    <Tabs activeKey={activeTab} onSelect={(k) => setActiveTab(k)} className="mb-3">
+      <Tab eventKey="list" title="List">
+        <div style={{ height: 'calc(100vh - 200px)', overflowY: 'auto' }}>
+          <Sidebar 
+            businesses={sortedBusinesses}
+            onBusinessClick={handleBusinessSelection}
+            selectedBusinessId={selectedBusinessId}
+            onReportIssue={handleReportIssue}
+            openPopupId={openPopupId}
+          />
+        </div>
+      </Tab>
+      <Tab eventKey="map" title="Map">
+        <div ref={mapContainerRef} style={{ width: '100%', height: 'calc(100vh - 200px)' }}>
+          <BusinessMap
+            businesses={businesses}
+            onMarkerClick={handleMapMarkerClick}
+            center={mapCenter}
+            zoom={mapZoom}
+            onBusinessesUpdate={setBusinessesWithDistances}
+            selectedBusiness={businesses.find(b => b.id === selectedBusinessId)}
+            onReportIssue={handleReportIssue}
+            onPopupToggle={handlePopupToggle}
+            mapRef={mapRef}
+          />
+        </div>
+      </Tab>
+    </Tabs>
+  );
 
+  const renderDesktopContent = () => (
+    <Row className="h-100">
+      <Col md={4} className="border-end h-100 overflow-auto">
+        <Sidebar 
+          businesses={sortedBusinesses}
+          onBusinessClick={handleBusinessSelection}
+          selectedBusinessId={selectedBusinessId}
+          onReportIssue={handleReportIssue}
+          openPopupId={openPopupId}
+        />
+      </Col>
+      <Col md={8} className="h-100">
+        <div ref={mapContainerRef} style={{ width: '100%', height: '100%' }}>
+          <BusinessMap
+            businesses={businesses}
+            onMarkerClick={handleMapMarkerClick}
+            center={mapCenter}
+            zoom={mapZoom}
+            onBusinessesUpdate={setBusinessesWithDistances}
+            selectedBusiness={businesses.find(b => b.id === selectedBusinessId)}
+            onReportIssue={handleReportIssue}
+            onPopupToggle={handlePopupToggle}
+            mapRef={mapRef}
+          />
+        </div>
+      </Col>
+    </Row>
+  );
+
+  // Main Render
   return (
     <Container fluid className="p-3" style={{ height: '100vh' }}>
-      {error && <Alert variant="danger">Error: {error}</Alert>}
+      {error && <ErrorAlert message={error} />}
       <Row className="mb-3">
         <Col xs={12} md={4} className="mb-2 mb-md-0">
           <SearchBar onSearch={handleSearch} />
@@ -196,13 +218,7 @@ function InstallersMap() {
           />
         </Col>
       </Row>
-      {loading ? (
-        <Spinner animation="border" role="status">
-          <span className="visually-hidden">Loading...</span>
-        </Spinner>
-      ) : (
-        renderContent()
-      )}
+      {loading ? <LoadingSpinner /> : (isMobile ? renderMobileContent() : renderDesktopContent())}
       <ReportForm
         show={showReportForm}
         onHide={handleCloseReportForm}

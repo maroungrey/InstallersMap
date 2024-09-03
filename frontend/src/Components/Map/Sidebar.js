@@ -8,6 +8,12 @@ const BusinessItem = React.memo(({ business, onClick, onReportIssue, isActive, i
     onReportIssue(business);
   }, [onReportIssue, business]);
 
+  const handleKeyPress = useCallback((e) => {
+    if (e.key === 'Enter') {
+      onClick();
+    }
+  }, [onClick]);
+
   return (
     <ListGroup.Item
       as="div"
@@ -17,7 +23,7 @@ const BusinessItem = React.memo(({ business, onClick, onReportIssue, isActive, i
     >
       <div 
         onClick={onClick}
-        onKeyPress={(e) => e.key === 'Enter' && onClick()}
+        onKeyPress={handleKeyPress}
         tabIndex="0"
         role="button"
         aria-label={`Select ${business.name}`}
@@ -28,18 +34,12 @@ const BusinessItem = React.memo(({ business, onClick, onReportIssue, isActive, i
           <span className="visually-hidden">Phone: </span>
           {business.phone}
         </p>
-        {business.distance != null ? (
-          <p className="mb-0 mt-2">
-            <small className="text-muted">
-              <span className="visually-hidden">Distance: </span>
-              {business.distance.toFixed(2)} km
-            </small>
-          </p>
-        ) : (
-          <p className="mb-0 mt-2">
-            <small className="text-muted">Distance: N/A</small>
-          </p>
-        )}
+        <p className="mb-0 mt-2">
+          <small className="text-muted">
+            <span className="visually-hidden">Distance: </span>
+            {business.distance != null ? `${business.distance.toFixed(2)} km` : 'N/A'}
+          </small>
+        </p>
       </div>
       <button 
         className="btn btn-link flag-hover-container position-absolute bottom-0 end-0 m-2"
@@ -54,38 +54,43 @@ const BusinessItem = React.memo(({ business, onClick, onReportIssue, isActive, i
 });
 
 const Sidebar = React.memo(({ businesses, onBusinessClick, selectedBusinessId, onReportIssue, openPopupId }) => {
-  // console.log('Sidebar - openPopupId:', openPopupId);
-  
   const listRef = useRef(null);
 
-  useEffect(() => {
-    const handleKeyDown = (e) => {
-      if (!listRef.current) return;
+  const handleKeyDown = useCallback((e) => {
+    if (!listRef.current) return;
 
-      const items = Array.from(listRef.current.querySelectorAll('[role="option"]'));
-      const currentIndex = items.findIndex(item => item.getAttribute('aria-selected') === 'true');
+    const items = Array.from(listRef.current.querySelectorAll('[role="option"]'));
+    const currentIndex = items.findIndex(item => item.getAttribute('aria-selected') === 'true');
 
-      switch(e.key) {
-        case 'ArrowDown':
-          e.preventDefault();
-          if (currentIndex < items.length - 1) {
-            onBusinessClick(businesses[currentIndex + 1].id, businesses[currentIndex + 1].latitude, businesses[currentIndex + 1].longitude);
-          }
-          break;
-        case 'ArrowUp':
-          e.preventDefault();
-          if (currentIndex > 0) {
-            onBusinessClick(businesses[currentIndex - 1].id, businesses[currentIndex - 1].latitude, businesses[currentIndex - 1].longitude);
-          }
-          break;
-        default:
-          break;
-      }
-    };
-
-    listRef.current?.addEventListener('keydown', handleKeyDown);
-    return () => listRef.current?.removeEventListener('keydown', handleKeyDown);
+    switch(e.key) {
+      case 'ArrowDown':
+        e.preventDefault();
+        if (currentIndex < items.length - 1) {
+          const nextBusiness = businesses[currentIndex + 1];
+          onBusinessClick(nextBusiness.id, nextBusiness.latitude, nextBusiness.longitude);
+        }
+        break;
+      case 'ArrowUp':
+        e.preventDefault();
+        if (currentIndex > 0) {
+          const prevBusiness = businesses[currentIndex - 1];
+          onBusinessClick(prevBusiness.id, prevBusiness.latitude, prevBusiness.longitude);
+        }
+        break;
+      default:
+        break;
+    }
   }, [businesses, onBusinessClick]);
+
+  useEffect(() => {
+    const currentList = listRef.current;
+    currentList?.addEventListener('keydown', handleKeyDown);
+    return () => currentList?.removeEventListener('keydown', handleKeyDown);
+  }, [handleKeyDown]);
+
+  const handleBusinessItemClick = useCallback((business) => {
+    onBusinessClick(business.id, business.latitude, business.longitude);
+  }, [onBusinessClick]);
 
   return (
     <nav className="sidebar d-flex flex-column h-100" aria-label="Business listings">
@@ -101,7 +106,7 @@ const Sidebar = React.memo(({ businesses, onBusinessClick, selectedBusinessId, o
               business={business}
               isActive={business.id === selectedBusinessId}
               isPopupOpen={business.id === openPopupId}
-              onClick={() => onBusinessClick(business.id, business.latitude, business.longitude)}
+              onClick={() => handleBusinessItemClick(business)}
               onReportIssue={onReportIssue}
             />
           ))}

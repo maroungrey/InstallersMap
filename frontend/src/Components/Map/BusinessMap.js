@@ -72,14 +72,19 @@ const MapController = ({ selectedBusiness, onPopupToggle, setMapInitialized, set
 };
 
 // Component: BusinessMarker
-const BusinessMarker = ({ business, onMarkerClick, onReportIssue, isSelected }) => {
+const BusinessMarker = React.memo(({ business, onMarkerClick, onReportIssue, isSelected, openPopupId }) => {
   const markerRef = useRef(null);
 
   useEffect(() => {
-    if (isSelected && markerRef.current) {
+    if ((isSelected || business.id === openPopupId) && markerRef.current) {
       markerRef.current.openPopup();
     }
-  }, [isSelected]);
+  }, [isSelected, business.id, openPopupId]);
+
+  const handleReportIssue = useCallback((e) => {
+    e.stopPropagation();
+    onReportIssue(business);
+  }, [business, onReportIssue]);
 
   return (
     <Marker 
@@ -95,10 +100,7 @@ const BusinessMarker = ({ business, onMarkerClick, onReportIssue, isSelected }) 
         <a href={business.website} target="_blank" rel="noopener noreferrer">Website</a>
         <div 
           className="flag-hover-container mt-2 text-end"
-          onClick={(e) => {
-            e.stopPropagation();
-            onReportIssue(business);
-          }}
+          onClick={handleReportIssue}
           style={{ cursor: 'pointer' }}
           aria-label="Report an issue"
         >
@@ -107,37 +109,31 @@ const BusinessMarker = ({ business, onMarkerClick, onReportIssue, isSelected }) 
       </Popup>
     </Marker>
   );
-};
+});
 
 // Main Component: BusinessMap
-const BusinessMap = ({ businesses, onMarkerClick, center, zoom, onBusinessesUpdate, selectedBusiness, onReportIssue, onPopupToggle, mapRef }) => {
+const BusinessMap = ({ businesses, onMarkerClick, center, zoom, onBusinessesUpdate, selectedBusiness, onReportIssue, onPopupToggle, mapRef, openPopupId }) => {
   const [mapInitialized, setMapInitialized] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isMobile, setIsMobile] = useState(window.innerWidth < MOBILE_BREAKPOINT);
 
-  useEffect(() => {
-    const handleResize = () => {
-      setIsMobile(window.innerWidth < MOBILE_BREAKPOINT);
-      if (mapRef.current) {
-        mapRef.current.invalidateSize();
-      }
-    };
-
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+  const handleResize = useCallback(() => {
+    setIsMobile(window.innerWidth < MOBILE_BREAKPOINT);
+    mapRef.current?.invalidateSize();
   }, [mapRef]);
 
+  useEffect(() => {
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [handleResize]);
+
   const invalidateMapSize = useCallback(() => {
-    if (mapRef.current) {
-      mapRef.current.invalidateSize();
-    }
+    mapRef.current?.invalidateSize();
   }, [mapRef]);
 
   useEffect(() => {
     if (mapRef.current && mapInitialized) {
-      setTimeout(() => {
-        invalidateMapSize();
-      }, 100);
+      setTimeout(invalidateMapSize, 100);
     }
   }, [mapInitialized, invalidateMapSize]);
 
@@ -155,26 +151,28 @@ const BusinessMap = ({ businesses, onMarkerClick, center, zoom, onBusinessesUpda
         onMarkerClick={onMarkerClick}
         onReportIssue={onReportIssue}
         isSelected={business.id === selectedBusiness?.id}
+        openPopupId={openPopupId}
       />
     )),
-    [businesses, onMarkerClick, onReportIssue]
+    [businesses, onMarkerClick, onReportIssue, selectedBusiness, openPopupId]
   );
 
-  useEffect(() => {
-    if (selectedBusiness && mapRef.current) {
-      const { latitude, longitude } = selectedBusiness;
-      const lat = parseFloat(latitude);
-      const lng = parseFloat(longitude);
-      if (!isNaN(lat) && !isNaN(lng)) {
-        const leafletMap = mapRef.current;
-        leafletMap.openPopup(lat, lng);
-      }
-    }
-  }, [selectedBusiness]);
+  // useEffect(() => {
+  //   if (selectedBusiness && mapRef.current) {
+  //     const { latitude, longitude } = selectedBusiness;
+  //     const lat = parseFloat(latitude);
+  //     const lng = parseFloat(longitude);
+  //     if (!isNaN(lat) && !isNaN(lng)) {
+  //       mapRef.current.openPopup(lat, lng);
+  //     }
+  //   }
+  // }, [selectedBusiness]);
+
+
 
   return (
     <div style={{ position: 'relative', height: '100%', width: '100%' }}>
-       {isLoading && <LoadingOverlay />}
+      {isLoading && <LoadingOverlay />}
       <MapContainer 
         center={center}
         zoom={zoom}
@@ -183,9 +181,7 @@ const BusinessMap = ({ businesses, onMarkerClick, center, zoom, onBusinessesUpda
         aria-label="Map of businesses"
         ref={mapRef}
         whenCreated={(map) => {
-          if (mapRef) {
-            mapRef.current = map;
-          }
+          mapRef.current = map;
           setTimeout(invalidateMapSize, 100);
         }}
       >
@@ -213,4 +209,4 @@ const BusinessMap = ({ businesses, onMarkerClick, center, zoom, onBusinessesUpda
   );
 };
 
-export default BusinessMap;
+export default React.memo(BusinessMap);

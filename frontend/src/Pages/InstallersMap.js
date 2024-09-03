@@ -45,7 +45,6 @@ function InstallersMap() {
   const [activeTab, setActiveTab] = useState('list');
   const [isMobile, setIsMobile] = useState(window.innerWidth < MOBILE_BREAKPOINT);
   const [mapKey, setMapKey] = useState(0);
-  
 
   // Refs
   const mapRef = useRef(null);
@@ -61,9 +60,7 @@ function InstallersMap() {
   useEffect(() => {
     const handleResize = () => {
       setIsMobile(window.innerWidth < MOBILE_BREAKPOINT);
-      if (mapRef.current) {
-        mapRef.current.invalidateSize();
-      }
+      mapRef.current?.invalidateSize();
     };
 
     window.addEventListener('resize', handleResize);
@@ -74,11 +71,7 @@ function InstallersMap() {
     if (mapContainerRef.current) {
       mapContainerRef.current.style.height = isMobile ? '70vh' : '100%';
     }
-    if (mapRef.current) {
-      setTimeout(() => {
-        mapRef.current.invalidateSize();
-      }, 100);
-    }
+    setTimeout(() => mapRef.current?.invalidateSize(), 100);
   }, [isMobile, activeTab]);
 
   // Callbacks
@@ -118,7 +111,6 @@ function InstallersMap() {
     }
   }, [businesses, handleBusinessClick, isMobile]);
 
-
   const handleMapMarkerClick = useCallback((businessId) => {
     handleMarkerClick(businessId);
     const selected = businesses.find(b => b.id === businessId);
@@ -128,6 +120,7 @@ function InstallersMap() {
       if (!isNaN(lat) && !isNaN(lng)) {
         setMapCenter([lat, lng]);
         setMapZoom(ZOOM_LEVEL);
+        setOpenPopupId(businessId);
       } else {
         console.warn(`Invalid coordinates for business ${businessId}`);
       }
@@ -150,7 +143,7 @@ function InstallersMap() {
 
   // Render Helpers
   const renderMobileContent = () => (
-    <Tabs activeKey={activeTab} onSelect={(k) => setActiveTab(k)} className="mb-3">
+    <Tabs activeKey={activeTab} onSelect={setActiveTab} className="mb-3">
       <Tab eventKey="list" title="List">
         <div style={{ height: '75vh', overflowY: 'auto' }}>
           <Sidebar 
@@ -163,21 +156,21 @@ function InstallersMap() {
         </div>
       </Tab>
       <Tab eventKey="map" title="Map">
-        <div ref={mapContainerRef} style={{ width: '100%', height: '70vh' }}>
-          <BusinessMap
-            key={mapKey}
-            businesses={businesses}
-            onMarkerClick={handleMapMarkerClick}
-            center={mapCenter}
-            zoom={mapZoom}
-            onBusinessesUpdate={setBusinessesWithDistances}
-            selectedBusiness={businesses.find(b => b.id === selectedBusinessId)}
-            onReportIssue={handleReportIssue}
-            onPopupToggle={handlePopupToggle}
-            mapRef={mapRef}
-            isMobile={isMobile}
-          />
-        </div>
+        <MapContainer 
+          businesses={businesses}
+          onMarkerClick={handleMapMarkerClick}
+          center={mapCenter}
+          zoom={mapZoom}
+          onBusinessesUpdate={setBusinessesWithDistances}
+          selectedBusinessId={selectedBusinessId}
+          onReportIssue={handleReportIssue}
+          onPopupToggle={handlePopupToggle}
+          openPopupId={openPopupId}
+          mapRef={mapRef}
+          mapContainerRef={mapContainerRef}
+          mapKey={mapKey}
+          isMobile={isMobile}
+        />
       </Tab>
     </Tabs>
   );
@@ -194,19 +187,19 @@ function InstallersMap() {
         />
       </Col>
       <Col md={8} className="h-100">
-        <div ref={mapContainerRef} style={{ width: '100%', height: '70vh' }}>
-          <BusinessMap
-            businesses={businesses}
-            onMarkerClick={handleMapMarkerClick}
-            center={mapCenter}
-            zoom={mapZoom}
-            onBusinessesUpdate={setBusinessesWithDistances}
-            selectedBusiness={businesses.find(b => b.id === selectedBusinessId)}
-            onReportIssue={handleReportIssue}
-            onPopupToggle={handlePopupToggle}
-            mapRef={mapRef}
-          />
-        </div>
+        <MapContainer 
+          businesses={businesses}
+          onMarkerClick={handleMapMarkerClick}
+          center={mapCenter}
+          zoom={mapZoom}
+          onBusinessesUpdate={setBusinessesWithDistances}
+          selectedBusinessId={selectedBusinessId}
+          onReportIssue={handleReportIssue}
+          onPopupToggle={handlePopupToggle}
+          mapRef={mapRef}
+          mapContainerRef={mapContainerRef}
+          isMobile={isMobile}
+        />
       </Col>
     </Row>
   );
@@ -236,5 +229,39 @@ function InstallersMap() {
     </Container>
   );
 }
+
+// Extracted MapContainer component
+const MapContainer = ({ 
+  businesses, 
+  onMarkerClick, 
+  center, 
+  zoom, 
+  onBusinessesUpdate, 
+  selectedBusinessId, 
+  onReportIssue, 
+  onPopupToggle, 
+  mapRef, 
+  mapContainerRef, 
+  mapKey, 
+  isMobile,
+  openPopupId
+}) => (
+  <div ref={mapContainerRef} style={{ width: '100%', height: '70vh' }}>
+    <BusinessMap
+      key={mapKey}
+      businesses={businesses}
+      onMarkerClick={onMarkerClick}
+      center={center}
+      zoom={zoom}
+      onBusinessesUpdate={onBusinessesUpdate}
+      selectedBusiness={businesses.find(b => b.id === selectedBusinessId)}
+      openPopupId={openPopupId}
+      onReportIssue={onReportIssue}
+      onPopupToggle={onPopupToggle}
+      mapRef={mapRef}
+      isMobile={isMobile}
+    />
+  </div>
+);
 
 export default InstallersMap;

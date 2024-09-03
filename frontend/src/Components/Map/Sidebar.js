@@ -2,60 +2,8 @@ import React, { useCallback, useRef, useEffect } from 'react';
 import { ListGroup } from 'react-bootstrap';
 import { FaFlag } from 'react-icons/fa';
 
-const BusinessItem = React.memo(({ business, onClick, onReportIssue, isActive, isPopupOpen }) => {
-  const handleReportClick = useCallback((e) => {
-    e.stopPropagation();
-    onReportIssue(business);
-  }, [onReportIssue, business]);
-
-  const handleKeyPress = useCallback((e) => {
-    if (e.key === 'Enter') {
-      onClick();
-    }
-  }, [onClick]);
-
-  return (
-    <ListGroup.Item
-      as="div"
-      className={`map-sidebar-item p-3 position-relative ${isActive ? 'active' : ''} ${isPopupOpen ? 'popup-open' : ''}`}
-      aria-selected={isActive}
-      role="option"
-    >
-      <div 
-        onClick={onClick}
-        onKeyPress={handleKeyPress}
-        tabIndex="0"
-        role="button"
-        aria-label={`Select ${business.name}`}
-      >
-        <h3 className="h5 mb-2 text-dark">{business.name}</h3>
-        <p className="mb-1 text-muted">{business.address}</p>
-        <p className="mb-0 text-muted">
-          <span className="visually-hidden">Phone: </span>
-          {business.phone}
-        </p>
-        <p className="mb-0 mt-2">
-          <small className="text-muted">
-            <span className="visually-hidden">Distance: </span>
-            {business.distance != null ? `${business.distance.toFixed(2)} km` : 'N/A'}
-          </small>
-        </p>
-      </div>
-      <button 
-        className="btn btn-link flag-hover-container position-absolute bottom-0 end-0 m-2"
-        onClick={handleReportClick}
-        aria-label={`Report an issue for ${business.name}`}
-      >
-        <FaFlag className="flag-hover" aria-hidden="true" />
-        <span className="visually-hidden">Report an issue</span>
-      </button>
-    </ListGroup.Item>
-  );
-});
-
-const Sidebar = React.memo(({ businesses, onBusinessClick, selectedBusinessId, onReportIssue, openPopupId }) => {
-  const listRef = useRef(null);
-
+// Extracted hook for keyboard navigation
+const useKeyboardNavigation = (listRef, businesses, onBusinessClick) => {
   const handleKeyDown = useCallback((e) => {
     if (!listRef.current) return;
 
@@ -87,6 +35,76 @@ const Sidebar = React.memo(({ businesses, onBusinessClick, selectedBusinessId, o
     currentList?.addEventListener('keydown', handleKeyDown);
     return () => currentList?.removeEventListener('keydown', handleKeyDown);
   }, [handleKeyDown]);
+};
+
+// Extracted BusinessItemContent component
+const BusinessItemContent = React.memo(({ business }) => (
+  <>
+    <h3 className="h5 mb-2 text-dark">{business.name}</h3>
+    <p className="mb-1 text-muted">{business.address}</p>
+    <p className="mb-0 text-muted">
+      <span className="visually-hidden">Phone: </span>
+      {business.phone}
+    </p>
+    <p className="mb-0 mt-2">
+      <small className="text-muted">
+        <span className="visually-hidden">Distance: </span>
+        {business.distance != null ? `${business.distance.toFixed(2)} km` : 'N/A'}
+      </small>
+    </p>
+  </>
+));
+
+BusinessItemContent.displayName = 'BusinessItemContent';
+
+// Refactored BusinessItem component
+const BusinessItem = React.memo(({ business, onClick, onReportIssue, isActive, isPopupOpen }) => {
+  const handleReportClick = useCallback((e) => {
+    e.stopPropagation();
+    onReportIssue(business);
+  }, [onReportIssue, business]);
+
+  const handleKeyPress = useCallback((e) => {
+    if (e.key === 'Enter') {
+      onClick();
+    }
+  }, [onClick]);
+
+  return (
+    <ListGroup.Item
+      as="div"
+      className={`map-sidebar-item p-3 position-relative ${isActive ? 'active' : ''} ${isPopupOpen ? 'popup-open' : ''}`}
+      aria-selected={isActive}
+      role="option"
+    >
+      <div 
+        onClick={onClick}
+        onKeyPress={handleKeyPress}
+        tabIndex="0"
+        role="button"
+        aria-label={`Select ${business.name}`}
+      >
+        <BusinessItemContent business={business} />
+      </div>
+      <button 
+        className="btn btn-link flag-hover-container position-absolute bottom-0 end-0 m-2"
+        onClick={handleReportClick}
+        aria-label={`Report an issue for ${business.name}`}
+      >
+        <FaFlag className="flag-hover" aria-hidden="true" />
+        <span className="visually-hidden">Report an issue</span>
+      </button>
+    </ListGroup.Item>
+  );
+});
+
+BusinessItem.displayName = 'BusinessItem';
+
+// Refactored Sidebar component
+const Sidebar = React.memo(({ businesses, onBusinessClick, selectedBusinessId, onReportIssue, openPopupId }) => {
+  const listRef = useRef(null);
+
+  useKeyboardNavigation(listRef, businesses, onBusinessClick);
 
   const handleBusinessItemClick = useCallback((business) => {
     onBusinessClick(business.id, business.latitude, business.longitude);
@@ -116,7 +134,6 @@ const Sidebar = React.memo(({ businesses, onBusinessClick, selectedBusinessId, o
   );
 });
 
-BusinessItem.displayName = 'BusinessItem';
 Sidebar.displayName = 'Sidebar';
 
 export default Sidebar;

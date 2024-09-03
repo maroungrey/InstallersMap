@@ -29,6 +29,37 @@ const createCustomClusterIcon = (cluster) => {
   });
 };
 
+// Custom Hooks
+const useResizeHandler = (mapRef) => {
+  const [isMobile, setIsMobile] = useState(window.innerWidth < MOBILE_BREAKPOINT);
+
+  const handleResize = useCallback(() => {
+    setIsMobile(window.innerWidth < MOBILE_BREAKPOINT);
+    mapRef.current?.invalidateSize();
+  }, [mapRef]);
+
+  useEffect(() => {
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [handleResize]);
+
+  return isMobile;
+};
+
+const useMapInvalidation = (mapRef, mapInitialized) => {
+  const invalidateMapSize = useCallback(() => {
+    mapRef.current?.invalidateSize();
+  }, [mapRef]);
+
+  useEffect(() => {
+    if (mapRef.current && mapInitialized) {
+      setTimeout(invalidateMapSize, 100);
+    }
+  }, [mapInitialized, invalidateMapSize]);
+
+  return invalidateMapSize;
+};
+
 // Component: LoadingOverlay
 const LoadingOverlay = () => (
   <div className="loading-overlay">
@@ -115,27 +146,9 @@ const BusinessMarker = React.memo(({ business, onMarkerClick, onReportIssue, isS
 const BusinessMap = ({ businesses, onMarkerClick, center, zoom, onBusinessesUpdate, selectedBusiness, onReportIssue, onPopupToggle, mapRef, openPopupId }) => {
   const [mapInitialized, setMapInitialized] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [isMobile, setIsMobile] = useState(window.innerWidth < MOBILE_BREAKPOINT);
-
-  const handleResize = useCallback(() => {
-    setIsMobile(window.innerWidth < MOBILE_BREAKPOINT);
-    mapRef.current?.invalidateSize();
-  }, [mapRef]);
-
-  useEffect(() => {
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, [handleResize]);
-
-  const invalidateMapSize = useCallback(() => {
-    mapRef.current?.invalidateSize();
-  }, [mapRef]);
-
-  useEffect(() => {
-    if (mapRef.current && mapInitialized) {
-      setTimeout(invalidateMapSize, 100);
-    }
-  }, [mapInitialized, invalidateMapSize]);
+  
+  const isMobile = useResizeHandler(mapRef);
+  const invalidateMapSize = useMapInvalidation(mapRef, mapInitialized);
 
   useEffect(() => {
     if (mapRef.current && mapInitialized && !selectedBusiness) {
@@ -156,19 +169,6 @@ const BusinessMap = ({ businesses, onMarkerClick, center, zoom, onBusinessesUpda
     )),
     [businesses, onMarkerClick, onReportIssue, selectedBusiness, openPopupId]
   );
-
-  // useEffect(() => {
-  //   if (selectedBusiness && mapRef.current) {
-  //     const { latitude, longitude } = selectedBusiness;
-  //     const lat = parseFloat(latitude);
-  //     const lng = parseFloat(longitude);
-  //     if (!isNaN(lat) && !isNaN(lng)) {
-  //       mapRef.current.openPopup(lat, lng);
-  //     }
-  //   }
-  // }, [selectedBusiness]);
-
-
 
   return (
     <div style={{ position: 'relative', height: '100%', width: '100%' }}>

@@ -28,6 +28,40 @@ const ErrorAlert = ({ message }) => (
   <Alert variant="danger">Error: {message}</Alert>
 );
 
+// Extracted MapContainer component
+const MapContainer = ({ 
+  businesses, 
+  onMarkerClick, 
+  center, 
+  zoom, 
+  onBusinessesUpdate, 
+  selectedBusinessId, 
+  onReportIssue, 
+  onPopupToggle, 
+  mapRef, 
+  mapContainerRef, 
+  mapKey, 
+  isMobile,
+  openPopupId
+}) => (
+  <div ref={mapContainerRef} style={{ width: '100%', height: '70vh' }}>
+    <BusinessMap
+      key={mapKey}
+      businesses={businesses}
+      onMarkerClick={onMarkerClick}
+      center={center}
+      zoom={zoom}
+      onBusinessesUpdate={onBusinessesUpdate}
+      selectedBusiness={businesses.find(b => b.id === selectedBusinessId)}
+      openPopupId={openPopupId}
+      onReportIssue={onReportIssue}
+      onPopupToggle={onPopupToggle}
+      mapRef={mapRef}
+      isMobile={isMobile}
+    />
+  </div>
+);
+
 // Main Component
 function InstallersMap() {
   // Custom Hooks
@@ -74,72 +108,13 @@ function InstallersMap() {
     setTimeout(() => mapRef.current?.invalidateSize(), 100);
   }, [isMobile, activeTab]);
 
-  // Callbacks
-  const handleSearch = useCallback(async (query) => {
-    try {
-      const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`);
-      const data = await response.json();
-      
-      if (data && data.length > 0) {
-        const { lat, lon } = data[0];
-        setMapCenter([parseFloat(lat), parseFloat(lon)]);
-        setMapZoom(ZOOM_LEVEL);
-      }
-    } catch (error) {
-      console.error('Error during geocoding:', error);
-    }
-  }, []);
-
-  const handleBusinessSelection = useCallback((businessId) => {
-    handleBusinessClick(businessId);
-    const selectedBusiness = businesses.find(b => b.id === businessId);
-    if (selectedBusiness) {
-      const lat = parseFloat(selectedBusiness.latitude);
-      const lng = parseFloat(selectedBusiness.longitude);
-      if (!isNaN(lat) && !isNaN(lng)) {
-        setMapCenter([lat, lng]);
-        setMapZoom(ZOOM_LEVEL);
-        setOpenPopupId(businessId);
-        if (isMobile) {
-          setActiveTab('map');
-          setMapKey(prevKey => prevKey + 1);
-        }
-      } else {
-        console.warn(`Invalid coordinates for business ${businessId}`);
-        alert("This business doesn't have valid location data.");
-      }
-    }
-  }, [businesses, handleBusinessClick, isMobile]);
-
-  const handleMapMarkerClick = useCallback((businessId) => {
-    handleMarkerClick(businessId);
-    const selected = businesses.find(b => b.id === businessId);
-    if (selected) {
-      const lat = parseFloat(selected.latitude);
-      const lng = parseFloat(selected.longitude);
-      if (!isNaN(lat) && !isNaN(lng)) {
-        setMapCenter([lat, lng]);
-        setMapZoom(ZOOM_LEVEL);
-        setOpenPopupId(businessId);
-      } else {
-        console.warn(`Invalid coordinates for business ${businessId}`);
-      }
-    }
-  }, [businesses, handleMarkerClick]);
-
-  const handleReportIssue = useCallback((business) => {
-    setReportingBusiness(business);
-    setShowReportForm(true);
-  }, []);
-
-  const handleCloseReportForm = useCallback(() => {
-    setShowReportForm(false);
-    setReportingBusiness(null);
-  }, []);
-
-  const handlePopupToggle = useCallback((businessId) => {
-    setOpenPopupId(businessId);
-  }, []);
+  // Extracted Callbacks
+  const handleSearch = useSearchCallback(setMapCenter, setMapZoom);
+  const handleBusinessSelection = useBusinessSelectionCallback(businesses, handleBusinessClick, setMapCenter, setMapZoom, setOpenPopupId, isMobile, setActiveTab, setMapKey);
+  const handleMapMarkerClick = useMapMarkerClickCallback(businesses, handleMarkerClick, setMapCenter, setMapZoom, setOpenPopupId);
+  const handleReportIssue = useReportIssueCallback(setReportingBusiness, setShowReportForm);
+  const handleCloseReportForm = useCloseReportFormCallback(setShowReportForm, setReportingBusiness);
+  const handlePopupToggle = usePopupToggleCallback(setOpenPopupId);
 
   // Render Helpers
   const renderMobileContent = () => (
@@ -230,38 +205,71 @@ function InstallersMap() {
   );
 }
 
-// Extracted MapContainer component
-const MapContainer = ({ 
-  businesses, 
-  onMarkerClick, 
-  center, 
-  zoom, 
-  onBusinessesUpdate, 
-  selectedBusinessId, 
-  onReportIssue, 
-  onPopupToggle, 
-  mapRef, 
-  mapContainerRef, 
-  mapKey, 
-  isMobile,
-  openPopupId
-}) => (
-  <div ref={mapContainerRef} style={{ width: '100%', height: '70vh' }}>
-    <BusinessMap
-      key={mapKey}
-      businesses={businesses}
-      onMarkerClick={onMarkerClick}
-      center={center}
-      zoom={zoom}
-      onBusinessesUpdate={onBusinessesUpdate}
-      selectedBusiness={businesses.find(b => b.id === selectedBusinessId)}
-      openPopupId={openPopupId}
-      onReportIssue={onReportIssue}
-      onPopupToggle={onPopupToggle}
-      mapRef={mapRef}
-      isMobile={isMobile}
-    />
-  </div>
-);
+// Extracted callback hooks
+const useSearchCallback = (setMapCenter, setMapZoom) => useCallback(async (query) => {
+  try {
+    const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`);
+    const data = await response.json();
+    
+    if (data && data.length > 0) {
+      const { lat, lon } = data[0];
+      setMapCenter([parseFloat(lat), parseFloat(lon)]);
+      setMapZoom(ZOOM_LEVEL);
+    }
+  } catch (error) {
+    console.error('Error during geocoding:', error);
+  }
+}, [setMapCenter, setMapZoom]);
+
+const useBusinessSelectionCallback = (businesses, handleBusinessClick, setMapCenter, setMapZoom, setOpenPopupId, isMobile, setActiveTab, setMapKey) => useCallback((businessId) => {
+  handleBusinessClick(businessId);
+  const selectedBusiness = businesses.find(b => b.id === businessId);
+  if (selectedBusiness) {
+    const lat = parseFloat(selectedBusiness.latitude);
+    const lng = parseFloat(selectedBusiness.longitude);
+    if (!isNaN(lat) && !isNaN(lng)) {
+      setMapCenter([lat, lng]);
+      setMapZoom(ZOOM_LEVEL);
+      setOpenPopupId(businessId);
+      if (isMobile) {
+        setActiveTab('map');
+        setMapKey(prevKey => prevKey + 1);
+      }
+    } else {
+      console.warn(`Invalid coordinates for business ${businessId}`);
+      alert("This business doesn't have valid location data.");
+    }
+  }
+}, [businesses, handleBusinessClick, setMapCenter, setMapZoom, setOpenPopupId, isMobile, setActiveTab, setMapKey]);
+
+const useMapMarkerClickCallback = (businesses, handleMarkerClick, setMapCenter, setMapZoom, setOpenPopupId) => useCallback((businessId) => {
+  handleMarkerClick(businessId);
+  const selected = businesses.find(b => b.id === businessId);
+  if (selected) {
+    const lat = parseFloat(selected.latitude);
+    const lng = parseFloat(selected.longitude);
+    if (!isNaN(lat) && !isNaN(lng)) {
+      setMapCenter([lat, lng]);
+      setMapZoom(ZOOM_LEVEL);
+      setOpenPopupId(businessId);
+    } else {
+      console.warn(`Invalid coordinates for business ${businessId}`);
+    }
+  }
+}, [businesses, handleMarkerClick, setMapCenter, setMapZoom, setOpenPopupId]);
+
+const useReportIssueCallback = (setReportingBusiness, setShowReportForm) => useCallback((business) => {
+  setReportingBusiness(business);
+  setShowReportForm(true);
+}, [setReportingBusiness, setShowReportForm]);
+
+const useCloseReportFormCallback = (setShowReportForm, setReportingBusiness) => useCallback(() => {
+  setShowReportForm(false);
+  setReportingBusiness(null);
+}, [setShowReportForm, setReportingBusiness]);
+
+const usePopupToggleCallback = (setOpenPopupId) => useCallback((businessId) => {
+  setOpenPopupId(businessId);
+}, [setOpenPopupId]);
 
 export default InstallersMap;

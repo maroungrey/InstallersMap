@@ -1,47 +1,27 @@
-// routes/installers.js
 const express = require('express');
 const router = express.Router();
-const { getInstallers, getTables } = require('../controllers/installersController');
+const { getNearbyInstallers, getMapInstallers, getTables } = require('../controllers/installersController');
 
-router.get('/', async (req, res) => {
-  const { 
-    table = 'golf-cart', 
-    centerLat, 
-    centerLng, 
-    radius = process.env.DEFAULT_RADIUS,
-    minLat,
-    maxLat,
-    minLng,
-    maxLng,
-    zoom = process.env.DEFAULT_ZOOM,
-    limit = process.env.DEFAULT_LIMIT
-  } = req.query;
-
-  if (!centerLat || !centerLng || !minLat || !maxLat || !minLng || !maxLng) {
-    return res.status(400).json({ error: 'Missing required parameters' });
-  }
+router.get('/nearby', async (req, res) => {
+  const { table = 'golf-cart', centerLat, centerLng, radius = 50, limit = 20 } = req.query;
 
   try {
-    const tables = await getTables();
-    if (!tables.includes(table)) {
-      return res.status(400).json({ error: 'Invalid table name' });
-    }
-
-    const installers = await getInstallers(
-      table, 
-      parseFloat(centerLat), 
-      parseFloat(centerLng), 
-      parseFloat(radius),
-      parseFloat(minLat),
-      parseFloat(maxLat),
-      parseFloat(minLng),
-      parseFloat(maxLng),
-      parseInt(zoom),
-      parseInt(limit)
-    );
+    const installers = await getNearbyInstallers(table, parseFloat(centerLat), parseFloat(centerLng), parseFloat(radius), parseInt(limit));
     res.json(installers);
   } catch (err) {
-    console.error('Error in installers route:', err);
+    console.error('Error in nearby installers route:', err);
+    res.status(500).json({ error: 'Internal server error', details: err.message });
+  }
+});
+
+router.get('/map', async (req, res) => {
+  const { table = 'golf-cart', minLat, maxLat, minLng, maxLng, zoom } = req.query;
+
+  try {
+    const mapData = await getMapInstallers(table, parseFloat(minLat), parseFloat(maxLat), parseFloat(minLng), parseFloat(maxLng), parseInt(zoom));
+    res.json(mapData);
+  } catch (err) {
+    console.error('Error in map installers route:', err);
     res.status(500).json({ error: 'Internal server error', details: err.message });
   }
 });

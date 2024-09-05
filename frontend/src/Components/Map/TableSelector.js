@@ -1,21 +1,24 @@
+// TableSelector.js
 import React from 'react';
-import { ButtonGroup, Button } from 'react-bootstrap';
+import { Button, ButtonGroup } from 'react-bootstrap';
 
-function TableSelector({ tables, selectedTable, onTableSelect }) {
+const TableSelector = ({ currentTable, onTableChange }) => {
   return (
-    <ButtonGroup className="d-flex flex-wrap justify-content-center">
-      {tables.map(table => (
-        <Button
-          key={table}
-          variant={selectedTable === table ? 'primary' : 'outline-primary'}
-          onClick={() => onTableSelect(table)}
-          className="m-1"
-        >
-          {table}
-        </Button>
-      ))}
+    <ButtonGroup className="mb-3 w-100">
+      <Button 
+        variant={currentTable === 'golf-cart' ? 'primary' : 'outline-primary'}
+        onClick={() => onTableChange('golf-cart')}
+      >
+        Golf Cart Installers
+      </Button>
+      <Button 
+        variant={currentTable === 'solar' ? 'primary' : 'outline-primary'}
+        onClick={() => onTableChange('solar')}
+      >
+        Solar Installers
+      </Button>
     </ButtonGroup>
   );
-}
+};
 
 export default TableSelector;

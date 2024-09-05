@@ -1,17 +1,16 @@
 import React, { useCallback, useRef } from 'react';
-import { ListGroup } from 'react-bootstrap';
+import { ListGroup, Dropdown } from 'react-bootstrap';
 
 const BusinessItemContent = React.memo(({ business }) => (
   <>
-    <h3 className="h5 mb-2 text-dark">{business.name}</h3>
-    <p className="mb-1 text-muted">{business.address}</p>
+    <h3 className="h5 mb-2 text-dark">{business.name || 'Business'}</h3>
+    <p className="mb-1 text-muted">{business.address || 'Address not available'}</p>
     <p className="mb-0 text-muted">
       <span className="visually-hidden">Phone: </span>
-      {business.phone}
+      {business.phone || 'Phone not available'}
     </p>
   </>
 ));
-
 BusinessItemContent.displayName = 'BusinessItemContent';
 
 const BusinessItem = React.memo(({ business, onClick, isActive }) => {
@@ -56,10 +55,10 @@ const Sidebar = React.memo(({ businesses, onBusinessClick, selectedBusinessId })
         >
           {businesses.map((business) => (
             <BusinessItem
-              key={business.id}
+              key={business.id || `${business.lat}-${business.lng}`}
               business={business}
               isActive={business.id === selectedBusinessId}
-              onClick={() => onBusinessClick(business.id, business.pin.lat, business.pin.lng)}
+              onClick={() => onBusinessClick(business.id, business.lat, business.lng)}
             />
           ))}
         </ListGroup>

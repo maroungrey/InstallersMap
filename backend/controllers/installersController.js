@@ -1,12 +1,15 @@
-// controllers/installersController.js
-const { getTables } = require('../db');
-const { getInstallers: getInstallersService } = require('../services/installerService');
+const { getNearbyInstallers: getNearbyInstallersService, getMapInstallers: getMapInstallersService, getTables } = require('../services/installerService');
 
-const getInstallers = async (table, centerLat, centerLng, radius, minLat, maxLat, minLng, maxLng, zoom, limit) => {
-    return await getInstallersService(table, centerLat, centerLng, radius, minLat, maxLat, minLng, maxLng, zoom, limit);
+const getNearbyInstallers = async (table, centerLat, centerLng, radius, limit) => {
+  return await getNearbyInstallersService(table, centerLat, centerLng, radius, limit);
+};
+
+const getMapInstallers = async (table, minLat, maxLat, minLng, maxLng, zoom) => {
+  return await getMapInstallersService(table, minLat, maxLat, minLng, maxLng, zoom);
 };
 
 module.exports = {
-    getInstallers,
-    getTables
+  getNearbyInstallers,
+  getMapInstallers,
+  getTables
 };

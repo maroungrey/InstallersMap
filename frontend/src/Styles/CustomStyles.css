@@ -33,18 +33,24 @@
 
 /* Map Page */
 
-.cluster-icon {
-    height: 3rem;
-    width: 3rem;
-    border-radius: 50%;
-    background-color: rgba(255, 0, 0, 0.6);
-    transform: translate(-25%, -25%);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-weight: 600;
-    font-size: 1.5rem;
-  }
+.custom-marker-cluster {
+  background-clip: padding-box;
+  border-radius: 20px;
+  background-color: #1978c8;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: white;
+  font-weight: bold;
+  width: 40px !important;
+  height: 40px !important;
+  margin-left: -20px !important;
+  margin-top: -20px !important;
+}
+
+.custom-marker-cluster span {
+  font-size: 14px;
+}
 
   .map-sidebar-item {
     cursor: pointer;

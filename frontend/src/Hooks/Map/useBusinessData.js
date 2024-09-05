@@ -1,42 +1,41 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useCallback } from 'react';
+import axios from 'axios';
 
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8081';
 
-function useBusinessData(selectedTable) {
+const useBusinessData = () => {
   const [businesses, setBusinesses] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const fetchBusinesses = useCallback(async (table) => {
+  const fetchBusinesses = useCallback(async (center, zoom) => {
     setLoading(true);
+    setError(null);
+
+    // Adjust radius based on zoom level
+    const radius = Math.max(5000 / Math.pow(2, zoom), 100); // km
+
     try {
-      const response = await fetch(`${API_BASE_URL}/installers?table=${table}`);
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      const data = await response.json();
-      const processedData = Array.isArray(data) ? data : [data];
-      const businessesWithCoordinates = processedData.map(business => ({
-        ...business,
-        latitude: business.pin?.lat,
-        longitude: business.pin?.lng
-      }));
-      setBusinesses(businessesWithCoordinates);
+      const response = await axios.get(`${API_BASE_URL}/installers`, {
+        params: {
+          centerLat: center[0],
+          centerLng: center[1],
+          zoom: zoom,
+          radius: radius
+        }
+      });
+
+      console.log('Fetched businesses:', response.data.length);
+      setBusinesses(response.data);
     } catch (err) {
-      console.error('Fetch error:', err);
-      setError(err.message);
+      console.error('Error fetching businesses:', err);
+      setError('Failed to fetch businesses. Please try again later.');
     } finally {
       setLoading(false);
     }
   }, []);
 
-  useEffect(() => {
-    if (selectedTable) {
-      fetchBusinesses(selectedTable);
-    }
-  }, [fetchBusinesses, selectedTable]);
-
-  return { businesses, loading, error };
-}
+  return { businesses, loading, error, fetchBusinesses };
+};
 
 export default useBusinessData;

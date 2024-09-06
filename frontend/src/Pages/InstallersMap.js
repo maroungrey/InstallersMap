@@ -7,7 +7,8 @@ import useBusinessData from '../Hooks/Map/useBusinessData';
 
 const MAP_CENTER_LAT = process.env.REACT_APP_MAP_CENTER_LAT || 39.8283;
 const MAP_CENTER_LNG = process.env.REACT_APP_MAP_CENTER_LNG || -98.5795;
-const MAP_INITIAL_ZOOM = process.env.REACT_APP_MAP_INITIAL_ZOOM || 4;
+const MAP_INITIAL_ZOOM = 5;
+const MAP_MIN_ZOOM = 5;
 
 function InstallersMap() {
   const [mapCenter, setMapCenter] = useState([MAP_CENTER_LAT, MAP_CENTER_LNG]);
@@ -22,10 +23,10 @@ function InstallersMap() {
 
   const handleViewportChanged = useCallback((newCenter, newZoom, newBounds) => {
     setMapCenter([newCenter.lat, newCenter.lng]);
-    setMapZoom(newZoom);
+    setMapZoom(Math.max(newZoom, MAP_MIN_ZOOM));
     setMapBounds(newBounds);
     fetchMapData(newBounds, newZoom, currentTable);
-    fetchSidebarBusinesses([newCenter.lat, newCenter.lng], 50, currentTable);
+    fetchSidebarBusinesses([newCenter.lat, newCenter.lng], newZoom, currentTable, 50);
   }, [fetchMapData, fetchSidebarBusinesses, currentTable]);
 
   const handleBusinessClick = useCallback((businessId, lat, lng) => {
@@ -38,7 +39,7 @@ function InstallersMap() {
     setCurrentTable(newTable);
     if (mapBounds) {
       fetchMapData(mapBounds, mapZoom, newTable);
-      fetchSidebarBusinesses(mapCenter, 50, newTable);
+      fetchSidebarBusinesses(mapCenter, mapZoom, newTable, 50); // Added zoom, increased limit
     }
   }, [fetchMapData, fetchSidebarBusinesses, mapBounds, mapZoom, mapCenter]);
 
@@ -46,16 +47,16 @@ function InstallersMap() {
     if (mapRef.current && mapRef.current.leafletElement) {
       const map = mapRef.current.leafletElement;
       const center = map.getCenter();
-      const zoom = map.getZoom();
+      const zoom = Math.max(map.getZoom(), MAP_MIN_ZOOM);
       const bounds = map.getBounds();
       setMapBounds(bounds);
       fetchMapData(bounds, zoom, currentTable);
-      fetchSidebarBusinesses([center.lat, center.lng], 50, currentTable);
+      fetchSidebarBusinesses([center.lat, center.lng], zoom, currentTable, 50);
     }
   }, [mapRef, fetchMapData, fetchSidebarBusinesses, currentTable]);
 
   return (
-    <Container fluid className="p-0" style={{ height: '100vh' }}>
+    <Container fluid className="p-0" style={{ height: '50vh' }}>
       <Row className="h-100 g-0">
         <Col md={4} className="h-100 overflow-auto">
           <TableSelector 

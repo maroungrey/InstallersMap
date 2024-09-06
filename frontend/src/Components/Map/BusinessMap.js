@@ -81,7 +81,8 @@ const BusinessMap = ({
   mapData, 
   onMarkerClick, 
   center, 
-  zoom, 
+  zoom,
+  minZoom,
   mapRef, 
   onViewportChanged 
 }) => {
@@ -99,6 +100,7 @@ const BusinessMap = ({
       <MapContainer 
         center={center}
         zoom={zoom}
+        minZoom={minZoom}
         style={{ height: "100%", width: "100%" }}
         ref={mapRef}
       >

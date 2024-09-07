@@ -13,10 +13,15 @@ const customIcon = new L.Icon({
 });
 
 const createClusterIcon = function (count) {
+  // Calculate size based on count
+  const size = Math.min(80, Math.max(40, 20 + count * 2)); // Min 40px, max 80px
+  
   return L.divIcon({
-    html: `<div><span>${count}</span></div>`,
+    html: `<div style="width: ${size}px; height: ${size}px; display: flex; justify-content: center; align-items: center; background-color: #1D6BF399; border-radius: 50%; color: white; font-weight: bold;">
+             <span>${count}</span>
+           </div>`,
     className: 'custom-marker-cluster',
-    iconSize: L.point(40, 40, true),
+    iconSize: L.point(size, size, true),
   });
 };
 

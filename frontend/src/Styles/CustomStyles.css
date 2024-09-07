@@ -33,24 +33,6 @@
 
 /* Map Page */
 
-.custom-marker-cluster {
-  background-clip: padding-box;
-  border-radius: 20px;
-  background-color: #1978c8;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  color: white;
-  font-weight: bold;
-  width: 40px !important;
-  height: 40px !important;
-  margin-left: -20px !important;
-  margin-top: -20px !important;
-}
-
-.custom-marker-cluster span {
-  font-size: 14px;
-}
 
   .map-sidebar-item {
     cursor: pointer;

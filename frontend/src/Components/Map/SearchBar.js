@@ -1,27 +1,36 @@
 import React, { useState } from 'react';
-import { Form, InputGroup, Button } from 'react-bootstrap';
+import { Form, Button } from 'react-bootstrap';
+import axios from 'axios';
 
-const SearchBar = ({ onSearch }) => {
-  const [query, setQuery] = useState('');
+const SearchBar = ({ onSearchComplete }) => {
+  const [address, setAddress] = useState('');
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    onSearch(query);
+    try {
+      const response = await axios.get(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}`);
+      if (response.data && response.data.length > 0) {
+        const { lat, lon } = response.data[0];
+        onSearchComplete(parseFloat(lat), parseFloat(lon));
+      } else {
+        alert('Address not found');
+      }
+    } catch (error) {
+      console.error('Error during geocoding:', error);
+      alert('An error occurred while searching for the address');
+    }
   };
 
   return (
-    <Form onSubmit={handleSubmit} className="my-1">
-      <InputGroup>
-        <Form.Control
-          type="text"
-          placeholder="Enter zipcode or address"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-        />
-        <Button variant="primary" type="submit" className="rounded-end py-1 px-4">
-          Search
-        </Button>
-      </InputGroup>
+    <Form onSubmit={handleSubmit} className="d-flex mx-2">
+      <Form.Control
+        type="text"
+        placeholder="Enter address"
+        value={address}
+        onChange={(e) => setAddress(e.target.value)}
+        className="me-2"
+      />
+      <Button variant="primary" type="submit">Search</Button>
     </Form>
   );
 };

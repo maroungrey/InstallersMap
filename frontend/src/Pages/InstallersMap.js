@@ -4,6 +4,7 @@ import BusinessMap from '../Components/Map/BusinessMap';
 import Sidebar from '../Components/Map/Sidebar';
 import TableSelector from '../Components/Map/TableSelector';
 import useBusinessData from '../Hooks/Map/useBusinessData';
+import SearchBar from '../Components/Map/SearchBar';
 
 const MAP_CENTER_LAT = process.env.REACT_APP_MAP_CENTER_LAT || 39.8283;
 const MAP_CENTER_LNG = process.env.REACT_APP_MAP_CENTER_LNG || -98.5795;
@@ -55,14 +56,29 @@ function InstallersMap() {
     }
   }, [mapRef, fetchMapData, fetchSidebarBusinesses, currentTable]);
 
+  const handleSearchComplete = useCallback((lat, lng) => {
+    setMapCenter([lat, lng]);
+    setMapZoom(15);
+    if (mapRef.current && mapRef.current.leafletElement) {
+      mapRef.current.leafletElement.flyTo([lat, lng], 15);
+    }
+  }, []);
+
   return (
     <Container fluid className="p-0" style={{ height: '50vh' }}>
-      <Row className="h-100 g-0">
-        <Col md={4} className="h-100 overflow-auto">
+      <Row className="g-0">
+        <Col md={4}>
+          <SearchBar onSearchComplete={handleSearchComplete} />
+        </Col>
+        <Col md={8}>
           <TableSelector 
             currentTable={currentTable}
             onTableChange={handleTableChange}
           />
+        </Col>
+      </Row>
+      <Row className="h-100 g-0">
+        <Col md={4} className="h-100 overflow-auto">
           <Sidebar 
             businesses={sidebarBusinesses}
             onBusinessClick={handleBusinessClick}
@@ -83,5 +99,6 @@ function InstallersMap() {
     </Container>
   );
 }
+
 
 export default InstallersMap;

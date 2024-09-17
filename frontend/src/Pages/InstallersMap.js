@@ -8,7 +8,7 @@ import SearchBar from '../Components/Map/SearchBar';
 
 const MAP_CENTER_LAT = process.env.REACT_APP_MAP_CENTER_LAT || 39.8283;
 const MAP_CENTER_LNG = process.env.REACT_APP_MAP_CENTER_LNG || -98.5795;
-const MAP_INITIAL_ZOOM = 5;
+const MAP_INITIAL_ZOOM = 4;
 const MAP_MIN_ZOOM = 3;
 
 function InstallersMap() {

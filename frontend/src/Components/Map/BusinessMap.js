@@ -1,14 +1,14 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useEffect } from 'react';
 import { MapContainer, TileLayer, useMap, useMapEvents } from "react-leaflet";
 import 'leaflet/dist/leaflet.css';
 import { BusinessMarker } from './BusinessMarkers';
 import { ClusterMarker } from './ClusterMarkers';
 
-// MapController component (unchanged)
+// MapController component (modified)
 const MapController = ({ onViewportChanged, center, zoom, minZoom }) => {
   const map = useMap();
 
-  React.useEffect(() => {
+  useEffect(() => {
     map.setView(center, zoom, { animate: true, duration: 0.5 });
   }, [map, center, zoom]);
 
@@ -23,6 +23,11 @@ const MapController = ({ onViewportChanged, center, zoom, minZoom }) => {
     moveend: handleViewportChange,
     zoomend: handleViewportChange,
   });
+
+  // Trigger initial viewport change
+  useEffect(() => {
+    handleViewportChange();
+  }, []);
 
   return null;
 };

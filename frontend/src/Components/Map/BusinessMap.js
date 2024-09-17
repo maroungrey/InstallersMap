@@ -1,4 +1,4 @@
-import React, { useMemo, useEffect } from 'react';
+import React, { useMemo, useEffect, useCallback } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents } from "react-leaflet";
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -26,37 +26,41 @@ const createClusterIcon = function (count) {
 };
 
 // Component: MapController
-const MapController = ({ onViewportChanged }) => {
+const MapController = ({ onViewportChanged, center, zoom, minZoom }) => {
   const map = useMap();
 
   useEffect(() => {
+    map.setView(center, zoom, { animate: true, duration: 1 });
+  }, [map, center, zoom]);
+
+  const handleViewportChange = useCallback(() => {
     const center = map.getCenter();
-    const zoom = map.getZoom();
+    const zoom = Math.max(map.getZoom(), minZoom);
     const bounds = map.getBounds();
     onViewportChanged(center, zoom, bounds);
-  }, [map, onViewportChanged]);
+  }, [map, onViewportChanged, minZoom]);
 
   useMapEvents({
-    moveend: () => {
-      const center = map.getCenter();
-      const zoom = map.getZoom();
-      const bounds = map.getBounds();
-      console.log("Current zoom:", zoom);
-      onViewportChanged(center, zoom, bounds);
-    },
+    moveend: handleViewportChange,
+    zoomend: handleViewportChange,
   });
 
   return null;
 };
 
 const BusinessMarker = React.memo(({ business, onMarkerClick }) => {
+  const map = useMap();
+  
+  const handleClick = () => {
+    map.setView([business.pin.lat, business.pin.lng], 15, { animate: true });
+    onMarkerClick(business.id, business.pin.lat, business.pin.lng);
+  };
+
   return (
     <Marker 
       position={[business.pin.lat, business.pin.lng]}
       icon={customIcon}
-      eventHandlers={{ 
-        click: () => onMarkerClick(business.id, business.pin.lat, business.pin.lng)
-      }}
+      eventHandlers={{ click: handleClick }}
     >
       <Popup>
         <h3>{business.name}</h3>
@@ -69,10 +73,17 @@ const BusinessMarker = React.memo(({ business, onMarkerClick }) => {
 });
 
 const ClusterMarker = React.memo(({ cluster }) => {
+  const map = useMap();
+  
+  const handleClick = () => {
+    map.setView([cluster.lat, cluster.lng], map.getZoom() + 2, { animate: true });
+  };
+
   return (
     <Marker 
       position={[cluster.lat, cluster.lng]}
       icon={createClusterIcon(cluster.count)}
+      eventHandlers={{ click: handleClick }}
     >
       <Popup>
         <h3>Cluster</h3>
@@ -108,8 +119,9 @@ const BusinessMap = ({
         minZoom={minZoom}
         style={{ height: "100%", width: "100%" }}
         ref={mapRef}
+        zoomControl={false}
       >
-        <MapController onViewportChanged={onViewportChanged} />
+        <MapController onViewportChanged={onViewportChanged} center={center} zoom={zoom} minZoom={minZoom} />
         <TileLayer
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           attribution="&copy; OpenStreetMap contributors"
@@ -121,3 +133,5 @@ const BusinessMap = ({
 };
 
 export default React.memo(BusinessMap);
+
+// 

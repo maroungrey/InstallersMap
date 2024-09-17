@@ -9,7 +9,7 @@ import SearchBar from '../Components/Map/SearchBar';
 const MAP_CENTER_LAT = process.env.REACT_APP_MAP_CENTER_LAT || 39.8283;
 const MAP_CENTER_LNG = process.env.REACT_APP_MAP_CENTER_LNG || -98.5795;
 const MAP_INITIAL_ZOOM = 5;
-const MAP_MIN_ZOOM = 5;
+const MAP_MIN_ZOOM = 3;
 
 function InstallersMap() {
   const [mapCenter, setMapCenter] = useState([MAP_CENTER_LAT, MAP_CENTER_LNG]);
@@ -24,7 +24,7 @@ function InstallersMap() {
 
   const handleViewportChanged = useCallback((newCenter, newZoom, newBounds) => {
     setMapCenter([newCenter.lat, newCenter.lng]);
-    setMapZoom(Math.max(newZoom, MAP_MIN_ZOOM));
+    setMapZoom(newZoom);
     setMapBounds(newBounds);
     fetchMapData(newBounds, newZoom, currentTable);
     fetchSidebarBusinesses([newCenter.lat, newCenter.lng], newZoom, currentTable, 50);
@@ -34,27 +34,32 @@ function InstallersMap() {
     setSelectedBusinessId(businessId);
     setMapCenter([lat, lng]);
     setMapZoom(15);
+    if (mapRef.current && mapRef.current.setView) {
+      mapRef.current.setView([lat, lng], 15, { animate: true, duration: 1 });
+    }
   }, []);
+
 
   const handleTableChange = useCallback((newTable) => {
     setCurrentTable(newTable);
     if (mapBounds) {
       fetchMapData(mapBounds, mapZoom, newTable);
-      fetchSidebarBusinesses(mapCenter, mapZoom, newTable, 50); // Added zoom, increased limit
+      fetchSidebarBusinesses(mapCenter, mapZoom, newTable, 50);
     }
   }, [fetchMapData, fetchSidebarBusinesses, mapBounds, mapZoom, mapCenter]);
 
   useEffect(() => {
-    if (mapRef.current && mapRef.current.leafletElement) {
-      const map = mapRef.current.leafletElement;
-      const center = map.getCenter();
-      const zoom = Math.max(map.getZoom(), MAP_MIN_ZOOM);
-      const bounds = map.getBounds();
-      setMapBounds(bounds);
-      fetchMapData(bounds, zoom, currentTable);
-      fetchSidebarBusinesses([center.lat, center.lng], zoom, currentTable, 50);
-    }
-  }, [mapRef, fetchMapData, fetchSidebarBusinesses, currentTable]);
+    // Initial data fetch
+    // Initial data fetch
+    const initialBounds = {
+      _southWest: { lat: MAP_CENTER_LAT - 10, lng: MAP_CENTER_LNG - 20 },
+      _northEast: { lat: MAP_CENTER_LAT + 10, lng: MAP_CENTER_LNG + 20 },
+      getSouthWest: function() { return this._southWest; },
+      getNorthEast: function() { return this._northEast; }
+    };
+    fetchMapData(initialBounds, MAP_INITIAL_ZOOM, currentTable);
+    fetchSidebarBusinesses([MAP_CENTER_LAT, MAP_CENTER_LNG], MAP_INITIAL_ZOOM, currentTable, 50);
+  }, [fetchMapData, fetchSidebarBusinesses, currentTable]);
 
   const handleSearchComplete = useCallback((lat, lng) => {
     setMapCenter([lat, lng]);
@@ -91,6 +96,7 @@ function InstallersMap() {
             onMarkerClick={handleBusinessClick}
             center={mapCenter}
             zoom={mapZoom}
+            minZoom={MAP_MIN_ZOOM}
             mapRef={mapRef}
             onViewportChanged={handleViewportChanged}
           />
@@ -99,6 +105,5 @@ function InstallersMap() {
     </Container>
   );
 }
-
 
 export default InstallersMap;

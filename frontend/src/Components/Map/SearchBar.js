@@ -22,7 +22,7 @@ const SearchBar = ({ onSearchComplete }) => {
   };
 
   return (
-    <Form onSubmit={handleSubmit} className="d-flex mx-2">
+    <Form onSubmit={handleSubmit} className="d-flex">
       <Form.Control
         type="text"
         placeholder="Enter address"

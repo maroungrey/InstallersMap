@@ -30,7 +30,7 @@ const MapController = ({ onViewportChanged, center, zoom, minZoom }) => {
   const map = useMap();
 
   useEffect(() => {
-    map.setView(center, zoom, { animate: true, duration: 1 });
+    map.setView(center, zoom, { animate: true, duration: 0.5 });
   }, [map, center, zoom]);
 
   const handleViewportChange = useCallback(() => {
@@ -50,25 +50,54 @@ const MapController = ({ onViewportChanged, center, zoom, minZoom }) => {
 
 const BusinessMarker = React.memo(({ business, onMarkerClick }) => {
   const map = useMap();
+  const popupRef = React.useRef(null);
   
-  const handleClick = () => {
-    map.setView([business.pin.lat, business.pin.lng], 15, { animate: true });
-    onMarkerClick(business.id, business.pin.lat, business.pin.lng);
-  };
+  const handleClick = useCallback(() => {
+    const { lat, lng } = business.pin;
+    map.setView([lat, lng], 15, { animate: true, duration: 0.5 });
+    onMarkerClick(business.id, lat, lng);
+
+    // Close any existing popup
+    map.closePopup();
+
+    // Create and open new popup
+    const popup = L.popup({
+      closeButton: true,
+      autoClose: false,
+      closeOnEscapeKey: true,
+      closeOnClick: false,
+      offset: [0, -30],
+      autoPan: false,
+      className: 'custom-popup'
+    })
+      .setLatLng([lat, lng])
+      .setContent(`
+        <div>
+          <h3>${business.name}</h3>
+          <p>${business.address}</p>
+          <p>${business.phone}</p>
+          <a href="${business.website}" target="_blank" rel="noopener noreferrer">Website</a>
+        </div>
+      `)
+      .openOn(map);
+
+    popupRef.current = popup;
+  }, [map, business, onMarkerClick]);
+
+  useEffect(() => {
+    return () => {
+      if (popupRef.current) {
+        popupRef.current.remove();
+      }
+    };
+  }, []);
 
   return (
     <Marker 
       position={[business.pin.lat, business.pin.lng]}
       icon={customIcon}
       eventHandlers={{ click: handleClick }}
-    >
-      <Popup>
-        <h3>{business.name}</h3>
-        <p>{business.address}</p>
-        <p>{business.phone}</p>
-        <a href={business.website} target="_blank" rel="noopener noreferrer">Website</a>
-      </Popup>
-    </Marker>
+    />
   );
 });
 
@@ -76,7 +105,7 @@ const ClusterMarker = React.memo(({ cluster }) => {
   const map = useMap();
   
   const handleClick = () => {
-    map.setView([cluster.lat, cluster.lng], map.getZoom() + 2, { animate: true });
+    map.setView([cluster.lat, cluster.lng], map.getZoom() + 2, { animate: true, duration: 0.5 });
   };
 
   return (
@@ -84,12 +113,7 @@ const ClusterMarker = React.memo(({ cluster }) => {
       position={[cluster.lat, cluster.lng]}
       icon={createClusterIcon(cluster.count)}
       eventHandlers={{ click: handleClick }}
-    >
-      <Popup>
-        <h3>Cluster</h3>
-        <p>{cluster.count} businesses in this area</p>
-      </Popup>
-    </Marker>
+    />
   );
 });
 
@@ -133,5 +157,3 @@ const BusinessMap = ({
 };
 
 export default React.memo(BusinessMap);
-
-// 

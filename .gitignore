@@ -7,6 +7,7 @@ email.md
 
 # testing
 /coverage
+addAdmin.js
 
 # production
 /build

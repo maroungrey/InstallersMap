@@ -1,16 +1,18 @@
 const mysql = require('mysql');
+require('dotenv').config();
 
 const createPool = (database) => mysql.createPool({
     host: process.env.DB_HOST,
     user: process.env.DB_USER,
     password: process.env.DB_PASSWORD,
     database: database,
-    connectionLimit: 10, // adjust based on your needs
+    connectionLimit: 10,
     queueLimit: 0
 });
 
 const installersDb = createPool('installers');
 const specsDb = createPool('specs');
+const adminDb = createPool('admin_db');
 
 const getTables = () => {
     return new Promise((resolve, reject) => {
@@ -80,6 +82,7 @@ const initialize = () => {
 module.exports = {
   installersDb,
   specsDb,
+  adminDb,
   getTables,
   initialize,
   queryPromise

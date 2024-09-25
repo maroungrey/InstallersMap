@@ -4,7 +4,6 @@ const cors = require('cors');
 const installersRoutes = require('./routes/installers');
 const batteriesRoutes = require('./routes/batteries');
 const adminDashboardRoutes = require('./routes/adminDashboard');
-// const authMiddleware = require('./middleware/auth'); for future admin routes
 
 const app = express();
 app.use(cors());

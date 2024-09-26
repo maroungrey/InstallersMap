@@ -7,6 +7,7 @@ import Home from './PublicPages/Home';
 import InstallersMap from './PublicPages/InstallersMap';
 import BatteryComparison from './PublicPages/BatteryComparison';
 import Contact from './PublicPages/Contact';
+import ProjectStory from './PublicPages/ProjectStory';
 import NoPage from './PublicPages/NoPage';
 import AdminLogin from './RestrictedPages/AdminLogin';
 import AdminDashboard from './RestrictedPages/AdminDashboard';
@@ -31,6 +32,7 @@ function App() {
           <Route path="/installers-map" element={<InstallersMap />} />
           <Route path="/battery-comparison" element={<BatteryComparison />} />
           <Route path="/contact" element={<Contact />} />
+          <Route path="/project-story" element={<ProjectStory />} />
           <Route path="/admin-dashboard">
             <Route index element={isAdminLoggedIn ? <AdminDashboard /> : <Navigate to="/admin-dashboard/login" />} />
             <Route path="login" element={<AdminLogin onLogin={handleAdminLogin} />} />

@@ -49,6 +49,9 @@ export default function Navbar() {
             <MDBNavbarItem>
               <MDBNavbarLink href='/battery-comparison'>Battery Comparison</MDBNavbarLink>
             </MDBNavbarItem>
+            <MDBNavbarItem>
+              <MDBNavbarLink href='/contact'>Contact</MDBNavbarLink>
+            </MDBNavbarItem>
 
             {/* <MDBNavbarItem>
               <MDBDropdown>

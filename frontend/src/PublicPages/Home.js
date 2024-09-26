@@ -66,9 +66,9 @@ export default function Home() {
               <Card.Text>
                 Despite this setback, I continued developing the project independently. It remains a non-commercial, 
                 personal passion project. To cover server costs and development resources, I may include some ads, 
-                but commercialization is not the goal.
+                but commercialization is not the goal. I'm hoping that someday it will help me land a job in the tech industry.
               </Card.Text>
-              <Button variant="primary" href="link-to-full-story">Read the Full Story</Button>
+              <Button variant="primary" href="project-story">Read the Full Story</Button>
             </Card.Body>
           </Card>
         </Col>

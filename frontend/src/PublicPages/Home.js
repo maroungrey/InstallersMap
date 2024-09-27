@@ -49,30 +49,7 @@ export default function Home() {
         </Col>
       </Row>
 
-      <Row className="mb-4">
-        <Col>
-          <Card>
-            <Card.Body>
-              <Card.Title>The Story Behind This Project</Card.Title>
-              <Card.Text>
-                After graduating, I briefly worked in the battery industry. While I loved learning about batteries, 
-                I realized sales wasn't for me. What I really enjoyed was analyzing data and helping people understand their options.
-              </Card.Text>
-              <Card.Text>
-                Initially, the company I worked for inspired me to start this project as a hobby, using my own data and resources. 
-                They were supportive at first, but after a month, they changed their stance, expecting me to develop it for them 
-                (unpaid and without direction, data or resources). When they threatened legal action, I decided to cut ties with them.
-              </Card.Text>
-              <Card.Text>
-                Despite this setback, I continued developing the project independently. It remains a non-commercial, 
-                personal passion project. To cover server costs and development resources, I may include some ads, 
-                but commercialization is not the goal. I'm hoping that someday it will help me land a job in the tech industry.
-              </Card.Text>
-              <Button variant="primary" href="project-story">Read the Full Story</Button>
-            </Card.Body>
-          </Card>
-        </Col>
-      </Row>
+
 
       <Row>
         <Col>

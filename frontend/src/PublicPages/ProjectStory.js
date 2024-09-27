@@ -51,7 +51,7 @@ const BatteryProjectStory = () => {
         I started working on the project in my free time, using my own resources. The company didn't pay me for this work or provide any specific instructions. I diverged from the initially discussed features and monetization methods, pursuing my own ideas for a more comprehensive and unbiased tool.
       </p>
       <p>
-        It's crucial to note that I started collecting data from scratch for this project. I'm not using anything from what I collected while employed at [Company], even though I also gathered that data at home during my weekends and free hours.
+        It's crucial to note that I started collecting public data from scratch for this project. I'm not using anything from what I collected while employed at [Company], even though I also gathered that data at home during my weekends and free hours.
       </p>
       
       <h2 className="mt-4">The Conflict and Resolution</h2>
@@ -67,7 +67,7 @@ const BatteryProjectStory = () => {
         Unfortunately, the entry-level data analytics job I had lined up didn't work out. But I'm not letting that stop me. I'm building this project not only to create a valuable resource for the battery community but also to learn new skills. I'm hoping that someday it will help me land a job in the tech industry.
       </p>
       <p>
-        Right now, the project is pretty basic, but I have big plans. I want to add some machine learning and AI tools to make it even more useful and comprehensive. It's a non-commercial, personal project aimed at providing clear, unbiased information about all types of batteries, not just lithium.
+        Right now, the project is pretty basic, but I have big plans. I want to add some machine learning and AI tools to make it even more useful and comprehensive. This project aimed at providing clear, unbiased information about all types of batteries, not just lithium.
       </p>
       <p>
         The project includes features like an interactive map of battery installers, a sophisticated battery comparison tool, and plans for a community forum and simulation tools. While I might include some ads to cover server and development costs, the primary goal is education and empowering consumers, not making a profit.

@@ -44,7 +44,7 @@ export default function Navbar() {
               </MDBNavbarLink>
             </MDBNavbarItem>
             <MDBNavbarItem>
-              <MDBNavbarLink href='/installers-map'>Map</MDBNavbarLink>
+              <MDBNavbarLink href='/installers-map'>Find Installers</MDBNavbarLink>
             </MDBNavbarItem>
             <MDBNavbarItem>
               <MDBNavbarLink href='/battery-comparison'>Battery Comparison</MDBNavbarLink>

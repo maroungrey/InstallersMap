@@ -22,11 +22,11 @@ export const fetchBatteries = async ({
       limit
     };
 
-    console.log('Sending request with params:', params);
+    // console.log('Sending request with params:', params);
 
     const response = await axios.get(`${API_BASE_URL}/batteries`, { params });
 
-    console.log('Received response:', response.data);
+    // console.log('Received response:', response.data);
 
     return {
       data: response.data.batteries || [],

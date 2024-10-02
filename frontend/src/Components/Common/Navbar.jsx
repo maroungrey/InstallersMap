@@ -52,6 +52,9 @@ export default function Navbar() {
             <MDBNavbarItem>
               <MDBNavbarLink href='/contact'>Contact</MDBNavbarLink>
             </MDBNavbarItem>
+            <MDBNavbarItem>
+              <MDBNavbarLink href='/login'>Login</MDBNavbarLink>
+            </MDBNavbarItem>
 
             {/* <MDBNavbarItem>
               <MDBDropdown>

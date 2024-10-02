@@ -1,10 +1,11 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
-const { connectToMongo, client } = require('./mongoDb');
+const { connectToMongo } = require('./mongoDb');
 const installersRoutes = require('./routes/installers');
 const batteriesRoutes = require('./routes/batteries');
 const adminDashboardRoutes = require('./routes/adminDashboard');
+const authRoutes = require('./routes/auth');
 
 const app = express();
 app.use(cors());
@@ -14,11 +15,7 @@ let db;
 
 // Connect to MongoDB before starting the server
 connectToMongo()
-  .then(database => {
-    db = database;
-    console.log("MongoDB connected successfully");
-    
-    // Start the server after successful database connection
+  .then(() => {
     const PORT = process.env.PORT || 8081;
     app.listen(PORT, () => {
       console.log(`Server is running on port ${PORT}`);
@@ -35,6 +32,7 @@ app.get('/', (req, res) => {
 
 app.use('/installers', installersRoutes);
 app.use('/batteries', batteriesRoutes);
+app.use('/api/auth', authRoutes);
 
 app.use('/api/admin-dashboard', (req, res, next) => {
     console.log('Admin route accessed:', req.method, req.url);

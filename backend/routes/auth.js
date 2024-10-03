@@ -1,141 +1,73 @@
-// routes/auth.js
 const express = require('express');
 const router = express.Router();
+const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const { check, validationResult } = require('express-validator');
-const User = require('../models/User');
-const authMiddleware = require('../middleware/auth');
+const User = require('../models/User'); // Make sure this path is correct
 
-// @route   POST api/auth/register
-// @desc    Register user
-// @access  Public
-router.post('/register', [
-  check('username', 'Username is required').not().isEmpty(),
-  check('email', 'Please include a valid email').isEmail(),
-  check('password', 'Please enter a password with 8 or more characters').isLength({ min: 8 }),
-  check('firstName', 'First name is required').not().isEmpty(),
-  check('lastName', 'Last name is required').not().isEmpty(),
-  check('dateOfBirth', 'Date of birth is required').not().isEmpty(),
-  check('userType', 'User type is required').isIn(['individual', 'business']),
-  check('zipcode', 'Zipcode is required').not().isEmpty()
-], async (req, res) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return res.status(400).json({ errors: errors.array() });
-  }
-
-  const { 
-    username, email, password, firstName, lastName, 
-    dateOfBirth, userType, zipcode 
-  } = req.body;
-
+// Register
+router.post('/register', async (req, res) => {
   try {
-    // Check if user already exists
-    let user = await User.findOne({ $or: [{ email }, { username }] });
+    const { username, email, password } = req.body;
+    let user = await User.findOne({ email });
     if (user) {
-      return res.status(400).json({ msg: 'User already exists' });
+      return res.status(400).json({ message: "User already exists" });
     }
-
-    // Create new user
+    const hashedPassword = await bcrypt.hash(password, 10);
     user = new User({
       username,
       email,
-      password,
-      firstName,
-      lastName,
-      dateOfBirth,
-      userType,
-      zipcode
+      password: hashedPassword
     });
-
-    // Save user to database
     await user.save();
-
-    // Create and return JWT
-    const payload = {
-      user: {
-        id: user.id
-      }
-    };
-
-    jwt.sign(
-      payload,
-      process.env.JWT_SECRET,
-      { expiresIn: '1d' },
-      (err, token) => {
-        if (err) throw err;
-        res.json({ token });
-      }
-    );
-  } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Server error');
+    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+      expiresIn: '7d'
+    });
+    req.session.token = token;
+    res.status(201).json({ message: "User created successfully", userId: user._id, token });
+  } catch (error) {
+    console.error('Registration error:', error);
+    res.status(500).json({ message: "Error in Registering user" });
   }
 });
 
-// @route   POST api/auth/login
-// @desc    Authenticate user & get token
-// @access  Public
-router.post('/login', [
-  check('email', 'Please include a valid email').isEmail(),
-  check('password', 'Password is required').exists()
-], async (req, res) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return res.status(400).json({ errors: errors.array() });
-  }
-
-  const { email, password } = req.body;
-
+// Login
+router.post('/login', async (req, res) => {
   try {
-    let user = await User.findOne({ email }).select('+password');
-
+    const { email, password } = req.body;
+    const user = await User.findOne({ email });
     if (!user) {
-      return res.status(400).json({ errors: [{ msg: 'Invalid Credentials' }] });
+      return res.status(400).json({ message: "User not found" });
     }
-
-    const isMatch = await user.matchPassword(password);
-
+    const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
-      return res.status(400).json({ errors: [{ msg: 'Invalid Credentials' }] });
+      return res.status(400).json({ message: "Incorrect password" });
     }
-
-    // Update last login
-    user.lastLogin = Date.now();
-    await user.save();
-
-    const payload = {
-      user: {
-        id: user.id
-      }
-    };
-
-    jwt.sign(
-      payload,
-      process.env.JWT_SECRET,
-      { expiresIn: '1d' },
-      (err, token) => {
-        if (err) throw err;
-        res.json({ token });
-      }
-    );
-  } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Server error');
+    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+      expiresIn: '7d'
+    });
+    req.session.token = token;
+    res.cookie('token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+    });
+    console.log('Login successful. Session:', req.session);
+    res.json({ message: "Logged in successfully", userId: user._id, token });
+  } catch (error) {
+    console.error('Login error:', error);
+    res.status(500).json({ message: "Error in Logging in" });
   }
 });
 
-// @route   GET api/auth/user
-// @desc    Get user data
-// @access  Private
-router.get('/user', authMiddleware, async (req, res) => {
-  try {
-    const user = await User.findById(req.user.id).select('-password');
-    res.json(user);
-  } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Server Error');
-  }
+// Logout
+router.post('/logout', (req, res) => {
+  req.session.destroy((err) => {
+    if (err) {
+      return res.status(500).json({ message: "Could not log out, please try again" });
+    }
+    res.clearCookie('connect.sid');
+    res.json({ message: "Logged out successfully" });
+  });
 });
 
 module.exports = router;

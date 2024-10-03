@@ -1,84 +1,59 @@
 import React, { useState } from 'react';
-import { Form, Button, Container, Alert } from 'react-bootstrap';
-import { useNavigate, Link } from 'react-router-dom';
-import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../AuthContext';
 
 const Login = () => {
-  const [formData, setFormData] = useState({
-    email: '',
-    password: ''
-  });
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const navigate = useNavigate();
+  const { login } = useAuth();
 
-  const { email, password } = formData;
-
-  const onChange = e => setFormData({ ...formData, [e.target.name]: e.target.value });
-
-  const validateForm = () => {
-    if (!email || !password) {
-      setError('Please fill in all fields');
-      return false;
-    }
-    if (!/\S+@\S+\.\S+/.test(email)) {
-      setError('Please enter a valid email address');
-      return false;
-    }
-    return true;
-  };
-
-  const onSubmit = async e => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
 
-    if (!validateForm()) {
+    if (!email || !password) {
+      setError('Please fill in all fields');
       return;
     }
 
-    try {
-      const res = await axios.post('http://localhost:8081/api/auth/login', formData);
-      localStorage.setItem('token', res.data.token);
+    const success = await login(email, password);
+    if (success) {
       navigate('/user-profile');
-    } catch (err) {
-      setError(err.response?.data?.msg || 'An error occurred during login');
+    } else {
+      setError('Invalid email or password');
     }
   };
 
   return (
-    <Container className="mt-5">
+    <div>
       <h2>Login</h2>
-      {error && <Alert variant="danger">{error}</Alert>}
-      <Form onSubmit={onSubmit}>
-        <Form.Group className="mb-3">
-          <Form.Label>Email address</Form.Label>
-          <Form.Control
+      {error && <p style={{ color: 'red' }}>{error}</p>}
+      <form onSubmit={handleSubmit}>
+        <div>
+          <label htmlFor="email">Email:</label>
+          <input
             type="email"
-            placeholder="Enter email"
-            name="email"
+            id="email"
             value={email}
-            onChange={onChange}
+            onChange={(e) => setEmail(e.target.value)}
             required
           />
-        </Form.Group>
-        <Form.Group className="mb-3">
-          <Form.Label>Password</Form.Label>
-          <Form.Control
+        </div>
+        <div>
+          <label htmlFor="password">Password:</label>
+          <input
             type="password"
-            placeholder="Password"
-            name="password"
+            id="password"
             value={password}
-            onChange={onChange}
+            onChange={(e) => setPassword(e.target.value)}
             required
           />
-        </Form.Group>
-        <Button variant="primary" type="submit">
-          Login
-        </Button>
-      </Form>
-      <p className="mt-3">
-        Don't have an account? <Link to="/register">Register here</Link>
-      </p>
-    </Container>
+        </div>
+        <button type="submit">Login</button>
+      </form>
+    </div>
   );
 };
 

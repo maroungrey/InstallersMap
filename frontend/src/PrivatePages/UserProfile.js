@@ -1,23 +1,22 @@
 import React from 'react';
-import { Container, Button } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../AuthContext';
 
 const UserProfile = () => {
+  const { user, logout } = useAuth();
   const navigate = useNavigate();
 
-  const handleLogout = () => {
-    localStorage.removeItem('isLoggedIn');
+  const handleLogout = async () => {
+    await logout();
     navigate('/login');
   };
 
   return (
-    <Container className="mt-5">
+    <div>
       <h2>User Profile</h2>
-      <p>Welcome to your profile page!</p>
-      <Button variant="danger" onClick={handleLogout}>
-        Logout
-      </Button>
-    </Container>
+      <p>User ID: {user}</p>
+      <button onClick={handleLogout}>Logout</button>
+    </div>
   );
 };
 

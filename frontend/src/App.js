@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import './App.css';
 import './Styles/CustomStyles.css';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { AuthProvider, useAuth } from './AuthContext';
 import Navbar from './Components/Common/Navbar';
 import Footer from './Components/Common/Footer';
 import Home from './PublicPages/Home';
@@ -18,8 +19,13 @@ import AdminDashboard from './RestrictedPages/AdminDashboard';
 
 // Define PrivateRoute component
 const PrivateRoute = ({ children }) => {
-  const isLoggedIn = localStorage.getItem('token') !== null; // Check if token exists
-  return isLoggedIn ? children : <Navigate to="/login" />;
+  const { user, loading } = useAuth();
+  
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
+  return user ? children : <Navigate to="/login" />;
 };
 
 function App() {
@@ -34,37 +40,44 @@ function App() {
   };
 
   return (
-    <BrowserRouter>
-      <div className="d-flex flex-column min-vh-100">
-        <Navbar isAdminLoggedIn={isAdminLoggedIn} onAdminLogout={handleAdminLogout} />
-        <main className="flex-grow-1">
-          <Routes>
-            <Route index element={<Home />} />
-            <Route path="/home" element={<Home />} />
-            <Route path="/installers-map" element={<InstallersMap />} />
-            <Route path="/battery-comparison" element={<BatteryComparison />} />
-            <Route path="/contact" element={<Contact />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-            <Route path="/project-story" element={<ProjectStory />} />
-            <Route 
-              path="/user-profile" 
-              element={
-                <PrivateRoute>
-                  <UserProfile />
-                </PrivateRoute>
-              } 
-            />
-            <Route path="/admin-dashboard">
-              <Route index element={isAdminLoggedIn ? <AdminDashboard /> : <Navigate to="/admin-dashboard/login" />} />
-              <Route path="login" element={<AdminLogin onLogin={handleAdminLogin} />} />
-            </Route>
-            <Route path="*" element={<NoPage />} />
-          </Routes>
-        </main>
-        <Footer />
-      </div>
-    </BrowserRouter>
+    <AuthProvider>
+      <BrowserRouter>
+        <div className="d-flex flex-column min-vh-100">
+          <Navbar isAdminLoggedIn={isAdminLoggedIn} onAdminLogout={handleAdminLogout} />
+          <main className="flex-grow-1">
+            <Routes>
+              <Route index element={<Home />} />
+              <Route path="/home" element={<Home />} />
+              <Route path="/installers-map" element={<InstallersMap />} />
+              <Route path="/battery-comparison" element={<BatteryComparison />} />
+              <Route path="/contact" element={<Contact />} />
+              <Route path="/project-story" element={<ProjectStory />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
+              <Route 
+                path="/user-profile" 
+                element={
+                  <PrivateRoute>
+                    <UserProfile />
+                  </PrivateRoute>
+                } 
+              />
+              <Route path="/admin-dashboard">
+                <Route 
+                  index 
+                  element={
+                    isAdminLoggedIn ? <AdminDashboard /> : <Navigate to="/admin-dashboard/login" />
+                  } 
+                />
+                <Route path="login" element={<AdminLogin onLogin={handleAdminLogin} />} />
+              </Route>
+              <Route path="*" element={<NoPage />} />
+            </Routes>
+          </main>
+          <Footer />
+        </div>
+      </BrowserRouter>
+    </AuthProvider>
   );
 }
 

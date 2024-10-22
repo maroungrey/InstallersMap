@@ -37,7 +37,7 @@ const NavigationBar = ({ isAdminLoggedIn, onAdminLogout }) => {
   };
 
   return (
-    <nav className="navbar navbar-expand-lg navbar-light bg-light py-1 sticky-top">
+    <nav className="navbar navbar-expand-lg navbar-light bg-light py-2 sticky-top">
       <div className="container-fluid">
         <a className="navbar-brand py-0" href="/">Compare Batteries</a>
         
@@ -118,7 +118,7 @@ const NavigationBar = ({ isAdminLoggedIn, onAdminLogout }) => {
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
               <button type="submit" className="btn btn-primary px-2 py-1">
-                <FaSearch />
+                <FaSearch size={18} />
               </button>
             </form>
 
@@ -130,7 +130,7 @@ const NavigationBar = ({ isAdminLoggedIn, onAdminLogout }) => {
                 onClick={() => handleDropdown('user')}
                 aria-expanded={openDropdown === 'user'}
               >
-                <FaUserCircle size={20} />
+                <FaUserCircle size={25} />
               </a>
               <ul className={`dropdown-menu dropdown-menu-end ${openDropdown === 'user' ? 'show' : ''}`}>
                 {user ? (

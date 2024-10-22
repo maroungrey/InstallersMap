@@ -368,20 +368,39 @@
   padding: 0 1rem !important;
 }
 
-/* Dropdown animation */
+/* Base dropdown styles */
 .dropdown-menu {
-  display: block;
+  display: block !important;
+  padding: 0 !important;
   visibility: hidden;
   opacity: 0;
-  transform: translateY(-10px);
-  transition: all 0.2s ease-in-out;
-  margin: 0 !important; /* Remove bottom margin */
+  transform: translateY(10px);
+  transition: all 0.25s cubic-bezier(0.3, 0, 0.3, 1);
 }
 
 .show > .dropdown-menu {
   visibility: visible;
   opacity: 1;
   transform: translateY(0);
+}
+
+/* Desktop dropdown hover effect */
+@media (min-width: 992px) {
+  .dropdown-item {
+    transition: background-color 0.2s ease;
+    padding: 0.5rem 1.5rem !important;
+  }
+
+  .dropdown-item:hover {
+    background-color: rgba(0, 0, 0, 0.04) !important;
+  }
+
+  /* Specific styles for user dropdown */
+  .dropdown-menu-end {
+    right: 0;
+    left: auto;
+    min-width: 200px;
+  }
 }
 
 /* Mobile styles */
@@ -395,7 +414,7 @@
   .nav-dropdown .dropdown-menu {
     border: none !important;
     background-color: transparent !important;
-    padding-left: 1rem !important;
+    padding: 0 !important;
     transform: none !important;
     transition: max-height 0.3s ease-in-out, opacity 0.2s ease-in-out;
     max-height: 0;
@@ -405,7 +424,6 @@
     overflow: hidden;
     position: static;
     float: none;
-    padding-bottom: 0 !important;
   }
   
   .nav-dropdown.show .dropdown-menu {
@@ -413,12 +431,33 @@
     opacity: 1;
   }
   
+  /* Nav items and dropdowns styling */
+  .nav-item .nav-link {
+    transition: font-weight 0.2s ease;
+  }
+
+  .nav-item.show .nav-link,
+  .nav-link.active {
+    font-weight: 700 !important;
+  }
+  
+  /* Dropdown items styling */
   .nav-dropdown .dropdown-item {
-    padding: 0.5rem 0 !important;
+    padding: 0.4rem 0 0.4rem 1.5rem !important;
+    font-size: 0.95em;
     background-color: transparent !important;
+    color: rgba(0, 0, 0, 0.7);
+    transition: color 0.2s ease;
+  }
+  
+  .nav-dropdown .dropdown-item:active,
+  .nav-dropdown .dropdown-item:hover {
+    background-color: transparent !important;
+    color: rgba(0, 0, 0, 0.9);
   }
   
   /* User dropdown specific styles */
+  #user-dropdown .dropdown-menu,
   .dropdown-menu-end {
     position: absolute;
     right: 0;
@@ -426,8 +465,21 @@
     border: 1px solid rgba(0,0,0,.15) !important;
     background-color: white !important;
     padding: 0.5rem 0 !important;
-    transform: none !important;
-    transition: opacity 0.2s ease-in-out;
+    transform: translateY(10px) !important;
+    transition: all 0.25s cubic-bezier(0.3, 0, 0.3, 1);
+    max-height: none !important;
+    opacity: 1 !important;
+    margin-top: 0.5rem !important;
+  }
+
+  #user-dropdown.show .dropdown-menu,
+  .show > .dropdown-menu-end {
+    transform: translateY(0) !important;
+  }
+  
+  #user-dropdown .dropdown-item {
+    padding: 0.5rem 1.5rem !important;
+    font-size: 1em;
   }
   
   .search-container {

@@ -19,6 +19,7 @@ import NoPage from './PublicPages/NoPage';
 // Private Pages
 import UserProfile from './PrivatePages/UserProfile';
 import UserDashboard from './PrivatePages/UserDashboard';
+import UserSettings from './PrivatePages/UserSettings';
 
 // Admin Pages
 import AdminLogin from './RestrictedPages/AdminLogin';
@@ -118,6 +119,14 @@ function App() {
                 element={
                   <PrivateRoute>
                     <UserDashboard />
+                  </PrivateRoute>
+                } 
+              />
+              <Route 
+                path="/settings" 
+                element={
+                  <PrivateRoute>
+                    <UserSettings />
                   </PrivateRoute>
                 } 
               />

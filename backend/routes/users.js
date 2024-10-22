@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const User = require('../models/User');
 const jwt = require('jsonwebtoken');
+const bcrypt = require('bcryptjs');
 
 // Middleware to verify token
 const verifyToken = (req, res, next) => {
@@ -73,19 +74,19 @@ router.put('/:userId', verifyToken, async (req, res) => {
       return res.status(403).json({ message: 'Not authorized to update this profile' });
     }
 
-    const { username, email, bio } = req.body;
+    const { location, bio, realName } = req.body;
     const updatedUser = await User.findByIdAndUpdate(
       req.userId,
       { 
         $set: { 
-          username,
-          email,
+          location,
           bio,
-          // Add other fields as needed
+          realName,
+          lastSeen: new Date()
         }
       },
       { new: true }
-    ).select('-password');
+    ).select('-password -email'); // Exclude password and email from response
 
     res.json(updatedUser);
   } catch (error) {
@@ -114,3 +115,92 @@ router.get('/:userId/comparisons', verifyToken, async (req, res) => {
 });
 
 module.exports = router;
+
+// Update password (protected route)
+router.put('/:userId/password', verifyToken, async (req, res) => {
+  try {
+    // Check if user is updating their own password
+    if (req.userId !== req.params.userId) {
+      return res.status(403).json({ message: 'Not authorized to update this password' });
+    }
+
+    const { currentPassword, newPassword } = req.body;
+    
+    // Find user and include password for verification
+    const user = await User.findById(req.userId);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Verify current password
+    const isMatch = await bcrypt.compare(currentPassword, user.password);
+    if (!isMatch) {
+      return res.status(400).json({ message: 'Current password is incorrect' });
+    }
+
+    // Check if new password is same as old password
+    const isSamePassword = await bcrypt.compare(newPassword, user.password);
+    if (isSamePassword) {
+      return res.status(400).json({ message: 'New password must be different from current password' });
+    }
+
+    // Validate new password
+    if (newPassword.length < 8) {
+      return res.status(400).json({ message: 'Password must be at least 8 characters long' });
+    }
+    if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(newPassword)) {
+      return res.status(400).json({ 
+        message: 'Password must contain at least one uppercase letter, one lowercase letter, and one number' 
+      });
+    }
+
+    // Hash new password and update
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    user.password = hashedPassword;
+    await user.save();
+
+    res.json({ message: 'Password updated successfully' });
+  } catch (error) {
+    console.error('Error updating password:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Update email (protected route)
+router.put('/:userId/email', verifyToken, async (req, res) => {
+  try {
+    // Check if user is updating their own email
+    if (req.userId !== req.params.userId) {
+      return res.status(403).json({ message: 'Not authorized to update this email' });
+    }
+
+    const { newEmail, password } = req.body;
+    
+    // Find user and include password for verification
+    const user = await User.findById(req.userId);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Verify password
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(400).json({ message: 'Password is incorrect' });
+    }
+
+    // Check if new email already exists
+    const emailExists = await User.findOne({ email: newEmail });
+    if (emailExists) {
+      return res.status(400).json({ message: 'Email already in use' });
+    }
+
+    // Update email
+    user.email = newEmail;
+    await user.save();
+
+    res.json({ message: 'Email updated successfully' });
+  } catch (error) {
+    console.error('Error updating email:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});

@@ -137,6 +137,7 @@ const NavigationBar = ({ isAdminLoggedIn, onAdminLogout }) => {
                   <>
                     <li><a className="dropdown-item" onClick={handleProfileClick}>Profile</a></li>
                     <li><a className="dropdown-item" href="/dashboard">Dashboard</a></li>
+                    <li><a className="dropdown-item" href="/settings">Settings</a></li>
                     <li><hr className="dropdown-divider" /></li>
                     <li><a className="dropdown-item" onClick={handleLogout}>Logout</a></li>
                   </>

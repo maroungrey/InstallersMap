@@ -17,7 +17,7 @@ import ProjectStory from './PublicPages/ProjectStory';
 import NoPage from './PublicPages/NoPage';
 
 // Private Pages
-import UserProfile from './PrivatePages/UserProfile';
+import UserProfile from './PrivatePages/UserProfile/UserProfile';
 import UserDashboard from './PrivatePages/UserDashboard';
 import UserSettings from './PrivatePages/UserSettings';
 

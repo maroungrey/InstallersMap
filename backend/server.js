@@ -11,16 +11,41 @@ const installersRoutes = require('./routes/installers');
 const batteriesRoutes = require('./routes/batteries');
 const adminDashboardRoutes = require('./routes/adminDashboard');
 const authRoutes = require('./routes/auth');
+const userRoutes = require('./routes/users'); // Add this new line
 
 const app = express();
 
 // CORS configuration
 app.use(cors({
-  origin: 'http://localhost:3000', // Replace with your frontend URL
+  origin: 'http://localhost:3000',
   credentials: true
 }));
 
 app.use(express.json());
+
+// JWT verification middleware
+const verifyToken = (req, res, next) => {
+  console.log('Session:', req.session);
+  console.log('Cookies:', req.cookies);
+  console.log('Headers:', req.headers);
+
+  const token = req.session.token || (req.cookies && req.cookies.token) || req.headers['x-access-token'];
+  
+  if (!token) {
+    console.log('No token found');
+    return res.status(403).json({ message: "No token provided" });
+  }
+
+  jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
+    if (err) {
+      console.log('Token verification failed:', err);
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+    console.log('Token verified successfully');
+    req.userId = decoded.id;
+    next();
+  });
+};
 
 // Connect to MongoDB before starting the server
 connectToMongo()
@@ -41,30 +66,6 @@ connectToMongo()
       }
     }));
 
-    // JWT verification middleware
-    const verifyToken = (req, res, next) => {
-      console.log('Session:', req.session);
-      console.log('Cookies:', req.cookies);
-      console.log('Headers:', req.headers);
-    
-      const token = req.session.token || (req.cookies && req.cookies.token) || req.headers['x-access-token'];
-      
-      if (!token) {
-        console.log('No token found');
-        return res.status(403).json({ message: "No token provided" });
-      }
-    
-      jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
-        if (err) {
-          console.log('Token verification failed:', err);
-          return res.status(401).json({ message: "Unauthorized" });
-        }
-        console.log('Token verified successfully');
-        req.userId = decoded.id;
-        next();
-      });
-    };
-
     app.get('/', (req, res) => {
       return res.json("From backend");
     });
@@ -78,14 +79,18 @@ connectToMongo()
       });
     });
 
+    // Existing routes
     app.use('/installers', installersRoutes);
     app.use('/batteries', batteriesRoutes);
     app.use('/api/auth', authRoutes);
 
-    // New route for checking authentication
+    // Authentication check route
     app.get('/api/check-auth', verifyToken, (req, res) => {
       res.status(200).json({ message: "Authenticated", userId: req.userId });
     });
+
+    // User routes (new)
+    app.use('/api/users', userRoutes);
 
     app.use('/api/admin-dashboard', (req, res, next) => {
       console.log('Admin route accessed:', req.method, req.url);

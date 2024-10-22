@@ -104,3 +104,247 @@
   .battery-card-hover:hover .flag-hover-container {
     transform: scale(0.97);
   }
+
+
+  
+
+
+
+
+
+  /* General Card Styles */
+.card {
+  border: none;
+  border-radius: 1rem;
+  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+}
+
+.card-header {
+  background-color: #f8f9fa;
+  border-bottom: 1px solid #e9ecef;
+}
+
+/* Form Styles */
+.form-control:focus {
+  box-shadow: none;
+  border-color: #0d6efd;
+}
+
+.form-label {
+  font-weight: 500;
+}
+
+.form-check-input:checked {
+  background-color: #0d6efd;
+  border-color: #0d6efd;
+}
+
+.form-check-input:focus {
+  box-shadow: none;
+  border-color: #0d6efd;
+}
+
+/* Button Styles */
+.btn-primary {
+  padding: 0.75rem 1rem;
+  font-weight: 500;
+}
+
+.btn-primary:focus {
+  box-shadow: none;
+}
+
+.btn-link {
+  text-decoration: none;
+}
+
+.btn-link:hover {
+  text-decoration: underline;
+}
+
+.btn-outline-primary:hover {
+  background-color: #0d6efd;
+  color: white;
+}
+
+/* Password Field Styles */
+.password-toggle {
+  background: none;
+  border: none;
+  color: #0d6efd;
+  padding: 0;
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 10;
+}
+
+.password-toggle:hover {
+  color: #0a58ca;
+}
+
+.password-requirements {
+  margin-top: 0.5rem;
+}
+
+.password-requirements ul {
+  padding-left: 1.2rem;
+  margin-top: 0.25rem;
+}
+
+.password-requirements li {
+  margin-bottom: 0.25rem;
+}
+
+/* Navigation Styles */
+.nav-link {
+  color: #495057;
+}
+
+.nav-link:hover {
+  background-color: #f8f9fa;
+}
+
+.nav-link.active {
+  color: #0d6efd;
+  background-color: #e9ecef;
+  font-weight: 500;
+}
+
+.nav-tabs .nav-link {
+  border: none;
+  color: #6c757d;
+  padding: 1rem 1.5rem;
+  font-weight: 500;
+}
+
+.nav-tabs .nav-link:hover {
+  border: none;
+  color: #0d6efd;
+}
+
+.nav-tabs .nav-link.active {
+  color: #0d6efd;
+  border: none;
+  border-bottom: 2px solid #0d6efd;
+}
+
+/* List Styles */
+.list-group-item {
+  transition: background-color 0.2s ease;
+}
+
+.list-group-item:hover {
+  background-color: #f8f9fa;
+}
+
+/* Loading Spinner */
+.spinner-border {
+  width: 3rem;
+  height: 3rem;
+}
+
+/* Profile Specific Styles */
+.profile-image-container {
+  position: relative;
+  display: inline-block;
+}
+
+.profile-image-edit {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  background: #fff;
+  border-radius: 50%;
+  padding: 0.5rem;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.text-muted {
+  font-size: 0.875rem;
+}
+
+/* Tab Content */
+.tab-content {
+  padding: 1.5rem;
+}
+
+/* Loading Container */
+.loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 50vh;
+}
+
+/* Alert Styles */
+.alert {
+  border: none;
+  border-radius: 0.5rem;
+}
+
+/* User Dashboard Additional Styles */
+.dashboard-nav {
+  border-right: 1px solid #e9ecef;
+}
+
+.dashboard-content {
+  padding: 1.5rem;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+  .card {
+    margin-bottom: 1rem;
+  }
+
+  .nav-tabs .nav-link {
+    padding: 0.75rem 1rem;
+  }
+
+  .dashboard-nav {
+    border-right: none;
+    border-bottom: 1px solid #e9ecef;
+    margin-bottom: 1rem;
+  }
+}
+
+/* Animation Effects */
+.fade-enter {
+  opacity: 0;
+}
+
+.fade-enter-active {
+  opacity: 1;
+  transition: opacity 200ms ease-in;
+}
+
+.fade-exit {
+  opacity: 1;
+}
+
+.fade-exit-active {
+  opacity: 0;
+  transition: opacity 200ms ease-out;
+}
+
+/* Utility Classes */
+.cursor-pointer {
+  cursor: pointer;
+}
+
+.transition-all {
+  transition: all 0.2s ease;
+}
+
+.hover-shadow:hover {
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+
+.text-truncate-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}

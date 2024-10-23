@@ -70,7 +70,7 @@ const Forums = () => {
   const fetchPosts = async () => {
     try {
       setLoading(true);
-      const response = await axios.get(`/api/forums/posts${selectedCategory ? `?category=${selectedCategory}` : ''}`);
+      const response = await axios.get(`http://localhost:8081/api/forums/posts${selectedCategory ? `?category=${selectedCategory}` : ''}`);
       setPosts(response.data.posts);
     } catch (err) {
       setError('Failed to load posts');

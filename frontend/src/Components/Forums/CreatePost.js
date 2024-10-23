@@ -1,26 +1,47 @@
 import React, { useState } from 'react';
 import { Modal, Form, Button, Alert } from 'react-bootstrap';
+import ReactQuill from 'react-quill';
+import 'react-quill/dist/quill.snow.css';
 import axios from 'axios';
 
 const CreatePost = ({ show, onHide, onPostCreated, categories }) => {
+  axios.defaults.withCredentials = true;
+  const API_URL = 'http://localhost:8081'; // Add this at the top with imports
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [category, setCategory] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
+  const modules = {
+    toolbar: [
+      [{ 'header': [1, 2, false] }],
+      ['bold', 'italic', 'underline', 'strike', 'blockquote'],
+      [{'list': 'ordered'}, {'list': 'bullet'}, {'indent': '-1'}, {'indent': '+1'}],
+      ['link'],
+      ['clean']
+    ],
+  };
+
+  const formats = [
+    'header',
+    'bold', 'italic', 'underline', 'strike', 'blockquote',
+    'list', 'bullet', 'indent',
+    'link'
+  ];
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
       setLoading(true);
       setError('');
-
-      const response = await axios.post('/api/forums/posts', {
+  
+      const response = await axios.post('http://localhost:8081/api/forums/posts', {
         title,
         content,
         category
       });
-
+  
       onPostCreated(response.data);
       setTitle('');
       setContent('');
@@ -71,13 +92,13 @@ const CreatePost = ({ show, onHide, onPostCreated, categories }) => {
 
           <Form.Group className="mb-3">
             <Form.Label>Content</Form.Label>
-            <Form.Control
-              as="textarea"
-              rows={5}
+            <ReactQuill 
+              theme="snow"
               value={content}
-              onChange={(e) => setContent(e.target.value)}
-              required
-              minLength={20}
+              onChange={setContent}
+              modules={modules}
+              formats={formats}
+              style={{ height: '200px', marginBottom: '50px' }}
             />
           </Form.Group>
 

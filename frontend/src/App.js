@@ -15,6 +15,7 @@ import Login from './PublicPages/Login';
 import Register from './PublicPages/Register';
 import ProjectStory from './PublicPages/ProjectStory';
 import NoPage from './PublicPages/NoPage';
+import Forums from './PublicPages/Forums';
 
 // Private Pages
 import UserProfile from './PrivatePages/UserProfile/UserProfile';
@@ -94,6 +95,7 @@ function App() {
               <Route path="/contact" element={<Contact />} />
               <Route path="/project-story" element={<ProjectStory />} />
               <Route path="/user/:userId" element={<UserProfile />} />
+              <Route path="/forums" element={<Forums />} />
               
               {/* Authentication Routes */}
               <Route 

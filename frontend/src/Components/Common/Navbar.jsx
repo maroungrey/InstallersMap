@@ -82,7 +82,7 @@ const NavigationBar = ({ isAdminLoggedIn, onAdminLogout }) => {
             </li>
 
             <li className="nav-item">
-              <a className="nav-link py-2" href="/forum">Forum</a>
+              <a className="nav-link py-2" href="/forums">Forums</a>
             </li>
 
             <li className={`nav-item dropdown nav-dropdown ${openDropdown === 'resources' ? 'show' : ''}`}>

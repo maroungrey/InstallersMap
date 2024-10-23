@@ -1,55 +1,38 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
-const { connectToMongo } = require('./mongoDb');
 const session = require('express-session');
 const MongoStore = require('connect-mongo');
 const mongoose = require('mongoose');
-const jwt = require('jsonwebtoken');
+const auth = require('./middleware/auth');
 
+// Import routes
 const installersRoutes = require('./routes/installers');
 const batteriesRoutes = require('./routes/batteries');
 const adminDashboardRoutes = require('./routes/adminDashboard');
 const authRoutes = require('./routes/auth');
-const userRoutes = require('./routes/users'); // Add this new line
+const userRoutes = require('./routes/users');
+const forumsRoutes = require('./routes/forums');
+
+// Import database connection
+const { connectToMongo } = require('./mongoDb');
+const { specsDb } = require('./db');
 
 const app = express();
 
-// CORS configuration
+// Middleware
 app.use(cors({
   origin: 'http://localhost:3000',
   credentials: true
 }));
-
 app.use(express.json());
 
-// JWT verification middleware
-const verifyToken = (req, res, next) => {
-  console.log('Session:', req.session);
-  console.log('Cookies:', req.cookies);
-  console.log('Headers:', req.headers);
+// Initialize server function
+const initializeServer = async () => {
+  try {
+    // Connect to MongoDB
+    await connectToMongo();
 
-  const token = req.session.token || (req.cookies && req.cookies.token) || req.headers['x-access-token'];
-  
-  if (!token) {
-    console.log('No token found');
-    return res.status(403).json({ message: "No token provided" });
-  }
-
-  jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
-    if (err) {
-      console.log('Token verification failed:', err);
-      return res.status(401).json({ message: "Unauthorized" });
-    }
-    console.log('Token verified successfully');
-    req.userId = decoded.id;
-    next();
-  });
-};
-
-// Connect to MongoDB before starting the server
-connectToMongo()
-  .then(() => {
     // Session configuration
     app.use(session({
       secret: process.env.SESSION_SECRET || 'your_session_secret',
@@ -66,11 +49,9 @@ connectToMongo()
       }
     }));
 
-    app.get('/', (req, res) => {
-      return res.json("From backend");
-    });
-
-    // Debugging route to check session
+    // Basic routes
+    app.get('/', (req, res) => res.json("From backend"));
+    
     app.get('/api/debug-session', (req, res) => {
       res.json({
         session: req.session,
@@ -79,24 +60,31 @@ connectToMongo()
       });
     });
 
-    // Existing routes
+    app.get('/api/check-auth', auth, (req, res) => {
+      try {
+        res.status(200).json({ 
+          message: "Authenticated", 
+          userId: req.user.id 
+        });
+      } catch (error) {
+        console.error('Auth check error:', error);
+        res.status(500).json({ message: "Server error during auth check" });
+      }
+    });
+
+    // API Routes
     app.use('/installers', installersRoutes);
     app.use('/batteries', batteriesRoutes);
     app.use('/api/auth', authRoutes);
-
-    // Authentication check route
-    app.get('/api/check-auth', verifyToken, (req, res) => {
-      res.status(200).json({ message: "Authenticated", userId: req.userId });
-    });
-
-    // User routes (new)
     app.use('/api/users', userRoutes);
-
+    app.use('/api/forums', forumsRoutes);
+    
     app.use('/api/admin-dashboard', (req, res, next) => {
       console.log('Admin route accessed:', req.method, req.url);
       next();
     }, adminDashboardRoutes);
 
+    // Error handling middleware
     app.use((err, req, res, next) => {
       console.error(err.stack);
       res.status(500).json({ 
@@ -106,31 +94,52 @@ connectToMongo()
       });
     });
 
+    // Start server
     const PORT = process.env.PORT || 8081;
     app.listen(PORT, () => {
       console.log(`Server is running on port ${PORT}`);
     });
-  })
-  .catch(error => {
-    console.error("Failed to connect to MongoDB", error);
-    process.exit(1);
-  });
 
-process.on('SIGINT', async () => {
-  const { specsDb } = require('./db');
-  if (specsDb) {
-    specsDb.end((err) => {
-      if (err) {
-        console.log('Error during SQL disconnection:', err);
-      }
-      console.log('SQL Database connection closed.');
-    });
+  } catch (error) {
+    console.error("Failed to initialize server:", error);
+    process.exit(1);
   }
-  
-  if (mongoose.connection.readyState === 1) {
-    await mongoose.connection.close();
-    console.log('MongoDB connection closed.');
+};
+
+// Graceful shutdown
+const handleShutdown = async () => {
+  try {
+    if (specsDb) {
+      await new Promise((resolve, reject) => {
+        specsDb.end(err => {
+          if (err) {
+            console.error('Error during SQL disconnection:', err);
+            reject(err);
+          } else {
+            console.log('SQL Database connection closed.');
+            resolve();
+          }
+        });
+      });
+    }
+
+    if (mongoose.connection.readyState === 1) {
+      await mongoose.connection.close();
+      console.log('MongoDB connection closed.');
+    }
+
+    process.exit(0);
+  } catch (error) {
+    console.error('Error during shutdown:', error);
+    process.exit(1);
   }
-  
-  process.exit();
-});
+};
+
+// Initialize server
+initializeServer();
+
+// Handle shutdown signals
+process.on('SIGINT', handleShutdown);
+process.on('SIGTERM', handleShutdown);
+
+module.exports = app;

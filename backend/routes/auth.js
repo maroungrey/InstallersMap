@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const User = require('../models/User'); // Make sure this path is correct
+const User = require('../models/User');
 
 // Register
 router.post('/register', async (req, res) => {
@@ -19,11 +19,24 @@ router.post('/register', async (req, res) => {
       password: hashedPassword
     });
     await user.save();
+    
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
       expiresIn: '7d'
     });
+
+    // Store token in session and cookie
     req.session.token = token;
-    res.status(201).json({ message: "User created successfully", userId: user._id, token });
+    res.cookie('token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+    });
+
+    res.status(201).json({ 
+      message: "User created successfully", 
+      userId: user._id, 
+      token 
+    });
   } catch (error) {
     console.error('Registration error:', error);
     res.status(500).json({ message: "Error in Registering user" });
@@ -42,17 +55,24 @@ router.post('/login', async (req, res) => {
     if (!isMatch) {
       return res.status(400).json({ message: "Incorrect password" });
     }
+
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
       expiresIn: '7d'
     });
+
+    // Store token in session and cookie
     req.session.token = token;
     res.cookie('token', token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
     });
-    console.log('Login successful. Session:', req.session);
-    res.json({ message: "Logged in successfully", userId: user._id, token });
+
+    res.json({ 
+      message: "Logged in successfully", 
+      userId: user._id, 
+      token 
+    });
   } catch (error) {
     console.error('Login error:', error);
     res.status(500).json({ message: "Error in Logging in" });
@@ -66,6 +86,7 @@ router.post('/logout', (req, res) => {
       return res.status(500).json({ message: "Could not log out, please try again" });
     }
     res.clearCookie('connect.sid');
+    res.clearCookie('token');
     res.json({ message: "Logged out successfully" });
   });
 });

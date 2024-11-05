@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { Container, Card, Button, Alert, Spinner, Form } from 'react-bootstrap';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
@@ -8,27 +8,29 @@ import CommentSection from '../Components/Forums/CommentSection';
 import { showConfirmationDialog, showReportDialog } from '../Components/Forums/ConfirmationModal';
 import Swal from 'sweetalert2';
 import { 
- FaThumbsUp, 
- FaRegThumbsUp, 
- FaClock, 
- FaUser,
- FaExclamationTriangle,
- FaEdit,
- FaTrash
+  FaThumbsUp, 
+  FaRegThumbsUp,
+  FaThumbsDown,
+  FaRegThumbsDown, 
+  FaClock, 
+  FaUser,
+  FaExclamationTriangle,
+  FaEdit,
+  FaTrash
 } from 'react-icons/fa';
 import axios from 'axios';
 
 const PostView = () => {
- axios.defaults.withCredentials = true;
- const [post, setPost] = useState(null);
- const [loading, setLoading] = useState(true);
- const [error, setError] = useState(null);
- const [comments, setComments] = useState([]);
- const [isEditing, setIsEditing] = useState(false);
- const [editedContent, setEditedContent] = useState('');
- const { postId } = useParams();
- const { user } = useAuth();
- const navigate = useNavigate();
+  axios.defaults.withCredentials = true;
+  const [post, setPost] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [comments, setComments] = useState([]);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editedContent, setEditedContent] = useState('');
+  const { postId } = useParams();
+  const { user } = useAuth();
+  const navigate = useNavigate();
 
  const modules = {
    toolbar: [
@@ -48,35 +50,49 @@ const PostView = () => {
  ];
 
  useEffect(() => {
-   fetchPost();
- }, [postId]);
+  fetchPost();
+}, [postId]);
 
- const fetchPost = async () => {
-    try {
-      setLoading(true);
-      const response = await axios.get(`http://localhost:8081/api/forums/posts/${postId}`);
-      setPost(response.data.post);
-      setComments(response.data.comments);
-    } catch (err) {
-      setError(err.response?.data?.message || 'Failed to load post');
-    } finally {
-      setLoading(false);
-    }
-  };
+const fetchPost = async () => {
+  try {
+    setLoading(true);
+    const response = await axios.get(`http://localhost:8081/api/forums/posts/${postId}`);
+    setPost(response.data.post);
+    setComments(response.data.comments);
+  } catch (err) {
+    setError(err.response?.data?.message || 'Failed to load post');
+  } finally {
+    setLoading(false);
+  }
+};
 
- const handleLike = async () => {
-    if (!user) {
-        navigate('/login', { state: { from: `/forums/post/${postId}` } });
-        return;
-      }
-    
-      try {
-        const response = await axios.post(`http://localhost:8081/api/forums/posts/${postId}/like`);
-        setPost(response.data);
-      } catch (err) {
-        setError(err.response?.data?.message || 'Failed to like post');
-      }
- };
+const handleLike = async () => {
+  if (!user) {
+    navigate('/login', { state: { from: `/forums/post/${postId}` } });
+    return;
+  }
+  
+  try {
+    const response = await axios.post(`http://localhost:8081/api/forums/posts/${postId}/like`);
+    setPost(response.data);
+  } catch (err) {
+    setError(err.response?.data?.message || 'Failed to like post');
+  }
+};
+
+const handleDislike = async () => {
+  if (!user) {
+    navigate('/login', { state: { from: `/forums/post/${postId}` } });
+    return;
+  }
+  
+  try {
+    const response = await axios.post(`http://localhost:8081/api/forums/posts/${postId}/dislike`);
+    setPost(response.data);
+  } catch (err) {
+    setError(err.response?.data?.message || 'Failed to dislike post');
+  }
+};
 
  const handleDelete = async () => {
    if (!user || post.author._id !== user) {
@@ -165,29 +181,34 @@ const PostView = () => {
  }
 
  return (
-   <Container className="py-5">
-     <Card className="mb-4">
-       <Card.Body>
-         <div className="d-flex justify-content-between align-items-start mb-3">
-           <div>
-             <h2>{post.title}</h2>
-             <div className="text-muted mb-2">
-               <small>
-                 <FaUser className="me-1" />
-                 {post.author.username} · 
-                 <FaClock className="ms-2 me-1" />
-                 {new Date(post.createdAt).toLocaleString()}
-                 {post.updatedAt !== post.createdAt && (
-                   <span className="ms-2">
-                     · edited {new Date(post.updatedAt).toLocaleString()}
-                   </span>
-                 )}
-               </small>
-             </div>
-             <div>
-               <span className="badge bg-secondary">{post.category}</span>
-             </div>
-           </div>
+  <Container className="py-5">
+  <Card className="mb-4">
+    <Card.Body>
+      <div className="d-flex justify-content-between align-items-start mb-3">
+        <div>
+          <h2>{post.title}</h2>
+          <div className="text-muted mb-2">
+            <small>
+              <FaUser className="me-1" />
+              <Link 
+                to={`/user/${post.author._id}`}
+                className="text-decoration-none"
+              >
+                {post.author.username}
+              </Link> · 
+              <FaClock className="ms-2 me-1" />
+              {new Date(post.createdAt).toLocaleString()}
+              {post.updatedAt !== post.createdAt && (
+                <span className="ms-2">
+                  · edited {new Date(post.updatedAt).toLocaleString()}
+                </span>
+              )}
+            </small>
+          </div>
+          <div>
+            <span className="badge bg-secondary">{post.category}</span>
+          </div>
+        </div>
            <div className="d-flex gap-2">
              {user && post.author._id === user && (
                <>
@@ -225,52 +246,66 @@ const PostView = () => {
          </div>
 
          <div className="post-content mb-3">
-           {isEditing ? (
-             <Form onSubmit={handleSave}>
-               <Form.Group className="mb-3">
-                 <ReactQuill 
-                   value={editedContent}
-                   onChange={setEditedContent}
-                   modules={modules}
-                   formats={formats}
-                   style={{ height: '200px', marginBottom: '50px' }}
-                 />
-               </Form.Group>
-               <div className="d-flex gap-2">
-                 <Button type="submit" variant="primary">Save Changes</Button>
-                 <Button variant="secondary" onClick={() => setIsEditing(false)}>
-                   Cancel
-                 </Button>
-               </div>
-             </Form>
-           ) : (
-             <div dangerouslySetInnerHTML={{ __html: post.isDeleted ? '[deleted]' : post.content }} />
-           )}
-         </div>
+            {isEditing ? (
+              <Form onSubmit={handleSave}>
+                <Form.Group className="mb-3">
+                  <ReactQuill 
+                    value={editedContent}
+                    onChange={setEditedContent}
+                    modules={modules}
+                    formats={formats}
+                    style={{ height: '200px', marginBottom: '50px' }}
+                  />
+                </Form.Group>
+                <div className="d-flex gap-2">
+                  <Button type="submit" variant="primary">Save Changes</Button>
+                  <Button variant="secondary" onClick={() => setIsEditing(false)}>
+                    Cancel
+                  </Button>
+                </div>
+              </Form>
+            ) : (
+              <div dangerouslySetInnerHTML={{ __html: post.isDeleted ? '[deleted]' : post.content }} />
+            )}
+          </div>
 
-         <div className="d-flex justify-content-between align-items-center">
-           <Button
-             variant="outline-primary"
-             size="sm"
-             onClick={handleLike}
-             disabled={!user}
-           >
-             {post.likedBy?.includes(user) ? (
-               <FaThumbsUp className="me-1" />
-             ) : (
-               <FaRegThumbsUp className="me-1" />
-             )}
-             {post.likesCount || 0}
-           </Button>
-         </div>
-       </Card.Body>
-     </Card>
+          <div className="d-flex gap-2">
+            <Button
+              variant="outline-primary"
+              size="sm"
+              onClick={handleLike}
+              disabled={!user}
+            >
+              {post.likedBy?.includes(user) ? (
+                <FaThumbsUp className="me-1" />
+              ) : (
+                <FaRegThumbsUp className="me-1" />
+              )}
+              {post.likesCount || 0}
+            </Button>
 
-     <CommentSection 
-       postId={postId}
-       comments={comments}
-       setComments={setComments}
-     />
+            <Button
+              variant="outline-danger"
+              size="sm"
+              onClick={handleDislike}
+              disabled={!user}
+            >
+              {post.dislikedBy?.includes(user) ? (
+                <FaThumbsDown className="me-1" />
+              ) : (
+                <FaRegThumbsDown className="me-1" />
+              )}
+              {post.dislikesCount || 0}
+            </Button>
+          </div>
+        </Card.Body>
+      </Card>
+
+      <CommentSection 
+        postId={postId}
+        comments={comments}
+        setComments={setComments}
+      />
    </Container>
  );
 };

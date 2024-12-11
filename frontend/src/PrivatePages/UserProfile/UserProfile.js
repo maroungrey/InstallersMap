@@ -24,13 +24,19 @@ const UserProfile = () => {
   const [editing, setEditing] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [activeTab, setActiveTab] = useState('profile');
+  const [activeTab, setActiveTab] = useState('activity');
+  const [userPosts, setUserPosts] = useState([]);
+  const [userActivities, setUserActivities] = useState([]);
+  const [isLoadingTab, setIsLoadingTab] = useState(false);
   const [imagePreview, setImagePreview] = useState(null);
   const [showReportModal, setShowReportModal] = useState(false);
   const [reportReason, setReportReason] = useState('');
   const { userId } = useParams();
   const { user } = useAuth();
   const navigate = useNavigate();
+  const [comparisons, setComparisons] = useState([]);
+
+
 
   const isOwner = user === userId;
 
@@ -49,6 +55,27 @@ const UserProfile = () => {
 
     fetchProfile();
   }, [userId]);
+
+  useEffect(() => {
+    const fetchTabContent = async () => {
+      setIsLoadingTab(true);
+      try {
+        if (activeTab === 'posts') {
+          const response = await axios.get(`http://localhost:8081/api/users/${userId}/posts`);
+          setUserPosts(response.data);
+        } else if (activeTab === 'activity') {
+          const response = await axios.get(`http://localhost:8081/api/users/${userId}/activities`);
+          setUserActivities(response.data);
+        }
+      } catch (err) {
+        console.error('Error fetching tab content:', err);
+      } finally {
+        setIsLoadingTab(false);
+      }
+    };
+
+    fetchTabContent();
+  }, [activeTab, userId]);
 
   const handleEdit = () => {
     if (!user) {
@@ -161,10 +188,14 @@ const UserProfile = () => {
             setEditing={setEditing}
             formatDateTime={formatDateTime}
           />
-          <ProfileTabs 
-            activeTab={activeTab}
-            setActiveTab={setActiveTab}
-          />
+      <ProfileTabs 
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+        posts={userPosts}
+        activities={userActivities}
+        isLoading={isLoadingTab}
+        navigate={navigate}
+      />
         </Col>
       </Row>
 

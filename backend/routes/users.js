@@ -1,6 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const User = require('../models/User');
+const Comment = require('../models/Comment');
+const Post = require('../models/Post'); 
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 
@@ -115,6 +117,67 @@ router.get('/:userId/comparisons', verifyToken, async (req, res) => {
 });
 
 module.exports = router;
+
+// Get user's posts
+router.get('/:userId/posts', async (req, res) => {
+  try {
+    const posts = await Post.find({ 
+      author: req.params.userId,
+      isDeleted: false 
+    })
+    .sort('-createdAt')
+    .populate('author', 'username photoUrl')
+    .lean();
+
+    res.json(posts);
+  } catch (error) {
+    console.error('Error fetching user posts:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Get user's activities (comments and likes)
+router.get('/:userId/activities', async (req, res) => {
+  try {
+    // Get user's comments
+    const comments = await Comment.find({
+      author: req.params.userId,
+      isDeleted: false
+    })
+    .populate({
+      path: 'post',
+      select: 'title _id'
+    })
+    .sort('-createdAt')
+    .lean()
+    .then(comments => comments.map(comment => ({
+      ...comment,
+      type: 'comment'
+    })));
+
+    // Get posts liked by user
+    const likedPosts = await Post.find({
+      likedBy: req.params.userId,
+      isDeleted: false
+    })
+    .select('title _id createdAt')
+    .lean()
+    .then(posts => posts.map(post => ({
+      post: { _id: post._id, title: post.title },
+      createdAt: post.createdAt,
+      type: 'like'
+    })));
+
+    // Combine and sort activities
+    const activities = [...comments, ...likedPosts]
+      .sort((a, b) => b.createdAt - a.createdAt);
+
+    res.json(activities);
+  } catch (error) {
+    console.error('Error fetching user activities:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
 
 // Update password (protected route)
 router.put('/:userId/password', verifyToken, async (req, res) => {

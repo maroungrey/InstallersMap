@@ -49,7 +49,7 @@ const ProfileHeader = ({
             <small className="text-muted">Comments</small>
           </div>
           <div className="text-center">
-            <h6>{profile.stats?.likes || 0}</h6>
+            <h6>{profile.stats?.reputation || 0}</h6>
             <small className="text-muted">Reputation</small>
           </div>
         </div>

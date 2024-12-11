@@ -130,18 +130,83 @@ router.post('/posts/:postId/like', auth, async (req, res) => {
 
     const hasLiked = post.likedBy.includes(req.user.id);
     const updateOperation = hasLiked
-      ? { $pull: { likedBy: req.user.id }, $inc: { likesCount: -1 } }
-      : { $addToSet: { likedBy: req.user.id }, $inc: { likesCount: 1 } };
+      ? { 
+          $pull: { likedBy: req.user.id }, 
+          $inc: { likesCount: -1 } 
+        }
+      : { 
+          $addToSet: { likedBy: req.user.id }, 
+          $inc: { likesCount: 1 } 
+        };
 
+    // Update post first
     const updatedPost = await Post.findByIdAndUpdate(
       req.params.postId,
       updateOperation,
       { new: true }
     ).populate('author', 'username photoUrl');
 
+    // Only update reputation if this is the first time liking/unliking
+    if (!hasLiked) {
+      await User.findByIdAndUpdate(
+        post.author,
+        { $inc: { 'stats.reputation': 1 } }
+      );
+    } else {
+      await User.findByIdAndUpdate(
+        post.author,
+        { $inc: { 'stats.reputation': -1 } }
+      );
+    }
+
     res.json(updatedPost);
   } catch (error) {
     console.error('Error liking/unliking post:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+router.post('/posts/:postId/dislike', auth, async (req, res) => {
+  try {
+    const post = await Post.findById(req.params.postId);
+    if (!post) {
+      return res.status(404).json({ message: 'Post not found' });
+    }
+
+    const hasDisliked = post.dislikedBy?.includes(req.user.id);
+    const updateOperation = hasDisliked
+      ? { 
+          $pull: { dislikedBy: req.user.id }, 
+          $inc: { dislikesCount: -1 } 
+        }
+      : { 
+          $addToSet: { dislikedBy: req.user.id }, 
+          $inc: { dislikesCount: 1 } 
+        };
+
+    // Update post first
+    const updatedPost = await Post.findByIdAndUpdate(
+      req.params.postId,
+      updateOperation,
+      { new: true }
+    ).populate('author', 'username photoUrl');
+
+    // Only update reputation if this is the first time disliking/undisliking
+    if (!hasDisliked) {
+      await User.findByIdAndUpdate(
+        post.author,
+        { $inc: { 'stats.reputation': -1 } }
+      );
+    } else {
+      await User.findByIdAndUpdate(
+        post.author,
+        { $inc: { 'stats.reputation': 1 } }
+      );
+    }
+
+    res.json(updatedPost);
+  } catch (error) {
+    console.error('Error disliking/undisliking post:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });

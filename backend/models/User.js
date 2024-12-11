@@ -51,6 +51,10 @@ const UserSchema = new mongoose.Schema({
     posts: {
       type: Number,
       default: 0
+    },
+    reputation: {  
+      type: Number,
+      default: 0
     }
   },
   reports: [{
